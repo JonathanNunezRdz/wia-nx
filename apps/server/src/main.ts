@@ -1,6 +1,5 @@
 import connectRedis from 'connect-redis';
 import cors from 'cors';
-import 'dotenv-safe/config';
 import express, { json, urlencoded } from 'express';
 import session from 'express-session';
 import { createServer } from 'http';
