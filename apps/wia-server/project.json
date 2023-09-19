@@ -31,7 +31,8 @@
 			},
 			"configurations": {
 				"development": {
-					"buildTarget": "wia-server:build:development"
+					"buildTarget": "wia-server:build:development",
+					"inspect": false
 				},
 				"production": {
 					"buildTarget": "wia-server:build:production"
