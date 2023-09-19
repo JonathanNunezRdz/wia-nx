@@ -1,0 +1,98 @@
+{
+	"name": "prisma",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/prisma-orm/src",
+	"projectType": "library",
+	"targets": {
+		"remove-db": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "development",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			},
+			"configurations": {
+				"development": {
+					"command": "echo READY"
+				},
+				"production": {
+					"command": "echo READY"
+				},
+				"reset": {
+					"command": "docker compose rm dev-db -s -f -v"
+				}
+			}
+		},
+		"start-db": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "development",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			},
+			"configurations": {
+				"development": {
+					"commands": ["docker compose up dev-db -d", "sleep 1"],
+					"parallel": false
+				},
+				"production": {
+					"command": "echo READY"
+				}
+			},
+			"dependsOn": ["remove-db"]
+		},
+		"prepare-db": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "development",
+			"options": {
+				"cwd": "libs/prisma-orm",
+				"parallel": false
+			},
+			"configurations": {
+				"development": {
+					"commands": ["npx prisma migrate deploy"]
+				},
+				"production": {
+					"commands": ["npx prisma migrate deploy"]
+				},
+				"reset": {
+					"commands": [
+						"npx prisma migrate deploy",
+						"npx prisma db seed"
+					]
+				}
+			},
+			"dependsOn": ["start-db"]
+		},
+		"prisma": {
+			"command": "prisma",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			}
+		},
+		"generate-types": {
+			"command": "prisma generate",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			}
+		},
+		"migrate": {
+			"command": "prisma migrate dev",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			}
+		},
+		"seed": {
+			"command": "prisma db seed",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			}
+		},
+		"lint": {
+			"executor": "@nx/linter:eslint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": ["libs/prisma-orm/**/*.ts"]
+			}
+		}
+	},
+	"tags": []
+}

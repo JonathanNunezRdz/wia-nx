@@ -1,0 +1,153 @@
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id             String       @id @default(uuid())
+    createdAt      DateTime     @default(now())
+    updatedAt      DateTime     @updatedAt
+    alias          String
+    firstName      String
+    uid            String       @unique
+    hash           String
+    email          String       @unique
+    lastName       String
+    knownMedia     KnownMedia[]
+    incomingTrades Trade[]      @relation("recipient")
+    outgoingTrades Trade[]      @relation("sender")
+    image          UserImage?
+    waifus         Waifu[]
+}
+
+model UserImage {
+    userId  String @unique
+    imageId String @unique
+    image   Image  @relation(fields: [imageId], references: [id])
+    user    User   @relation(fields: [userId], references: [id])
+
+    @@id([userId, imageId])
+}
+
+model Image {
+    id        String      @id @default(uuid())
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    format    ImageFormat
+    media     MediaImage?
+    user      UserImage?
+    waifu     WaifuImage?
+}
+
+model MediaImage {
+    mediaId String @unique
+    imageId String @unique
+    image   Image  @relation(fields: [imageId], references: [id])
+    media   Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+    @@id([mediaId, imageId])
+}
+
+model Media {
+    id        String       @id @default(uuid())
+    createdAt DateTime     @default(now())
+    updatedAt DateTime     @updatedAt
+    title     String       @unique
+    type      MediaType
+    knownBy   KnownMedia[]
+    image     MediaImage?
+    waifus    Waifu[]
+}
+
+model KnownMedia {
+    userId  String
+    mediaId String
+    knownAt DateTime
+    media   Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    user    User     @relation(fields: [userId], references: [id])
+
+    @@id([userId, mediaId])
+}
+
+model Waifu {
+    id             String      @id @default(uuid())
+    createdAt      DateTime    @default(now())
+    updatedAt      DateTime    @updatedAt
+    name           String
+    level          WaifuLevel
+    since          DateTime
+    mediaId        String
+    userId         String
+    offeredTradeId String?
+    wantedTradeId  String?
+    media          Media       @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    offeredTrade   Trade?      @relation("offered", fields: [offeredTradeId], references: [id])
+    user           User        @relation(fields: [userId], references: [id])
+    wantedTrade    Trade?      @relation("wanted", fields: [wantedTradeId], references: [id])
+    image          WaifuImage?
+
+    @@unique([name, mediaId])
+}
+
+model WaifuImage {
+    waifuId String @unique
+    imageId String @unique
+    image   Image  @relation(fields: [imageId], references: [id])
+    waifu   Waifu  @relation(fields: [waifuId], references: [id], onDelete: Cascade)
+
+    @@id([waifuId, imageId])
+}
+
+model Trade {
+    id            String      @id @default(uuid())
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+    endedAt       DateTime?
+    senderId      String
+    recipientId   String
+    status        TradeStatus @default(pending)
+    recipient     User        @relation("recipient", fields: [recipientId], references: [id])
+    sender        User        @relation("sender", fields: [senderId], references: [id])
+    offeredWaifus Waifu[]     @relation("offered")
+    wantedWaifus  Waifu[]     @relation("wanted")
+}
+
+enum MediaType {
+    anime
+    manga
+    videogame
+}
+
+enum WaifuLevel {
+    topWaifu
+    jonin
+    chunin
+    genin
+    freeAgent
+    nationalTreasure
+}
+
+enum ImageFormat {
+    apng
+    avif
+    gif
+    jpg
+    jpeg
+    jfif
+    pjpeg
+    pjp
+    png
+    svg
+    webp
+}
+
+enum TradeStatus {
+    pending
+    declined
+    accepted
+}
