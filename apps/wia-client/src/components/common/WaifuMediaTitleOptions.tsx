@@ -2,7 +2,7 @@ import { useAppSelector } from '@wia-client/src/store/hooks';
 import { selectMediaTitles } from '@wia-client/src/store/media';
 
 function WaifuMediaTitleOptions() {
-	const mediaTitles = useAppSelector(selectMediaTitles);
+	const { data: mediaTitles } = useAppSelector(selectMediaTitles);
 	return (
 		<>
 			{mediaTitles.map((media) => (
