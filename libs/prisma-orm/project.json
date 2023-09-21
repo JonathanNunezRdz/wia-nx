@@ -51,7 +51,10 @@
 					"commands": ["npx prisma migrate deploy"]
 				},
 				"production": {
-					"commands": ["npx prisma migrate deploy"]
+					"commands": [
+						"npx prisma migrate deploy",
+						"npx prisma generate"
+					]
 				},
 				"reset": {
 					"commands": [
