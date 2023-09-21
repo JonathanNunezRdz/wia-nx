@@ -36,7 +36,8 @@
 					"inspect": false
 				},
 				"production": {
-					"buildTarget": "wia-server:build:production"
+					"buildTarget": "wia-server:build:production",
+					"inspect": false
 				}
 			},
 			"dependsOn": ["prisma:prepare-db"]
