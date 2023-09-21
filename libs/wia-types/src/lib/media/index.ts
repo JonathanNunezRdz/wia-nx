@@ -51,7 +51,7 @@ export interface MediaLabel {
 	past: { [k in MediaType]: string };
 }
 
-export const prismaSelectMedia = Prisma.validator<Prisma.MediaArgs>()({
+export const prismaSelectMedia = Prisma.validator<Prisma.MediaDefaultArgs>()({
 	select: {
 		id: true,
 		createdAt: true,

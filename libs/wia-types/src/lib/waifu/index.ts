@@ -27,7 +27,7 @@ export interface WaifuState {
 	} & RequestStatus;
 }
 
-export const prismaSelectWaifu = Prisma.validator<Prisma.WaifuArgs>()({
+export const prismaSelectWaifu = Prisma.validator<Prisma.WaifuDefaultArgs>()({
 	select: {
 		id: true,
 		createdAt: true,
@@ -37,12 +37,14 @@ export const prismaSelectWaifu = Prisma.validator<Prisma.WaifuArgs>()({
 		since: true,
 		media: {
 			select: {
+				id: true,
 				title: true,
 				type: true,
 			},
 		},
 		user: {
 			select: {
+				id: true,
 				alias: true,
 			},
 		},

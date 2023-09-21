@@ -189,6 +189,7 @@ export class MediaService {
 						},
 						user: {
 							select: {
+								id: true,
 								alias: true,
 							},
 						},

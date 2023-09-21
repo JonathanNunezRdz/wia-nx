@@ -14,21 +14,30 @@
 						"allow": [],
 						"depConstraints": [
 							{
+								"sourceTag": "scope:prisma",
+								"onlyDependOnLibsWithTags": ["scope:prisma"]
+							},
+							{
 								"sourceTag": "scope:shared",
-								"onlyDependOnLibsWithTags": ["scope:shared"]
+								"onlyDependOnLibsWithTags": [
+									"scope:shared",
+									"scope:prisma"
+								]
 							},
 							{
 								"sourceTag": "scope:wia-server",
 								"onlyDependOnLibsWithTags": [
 									"scope:shared",
-									"scope:wia-server"
+									"scope:wia-server",
+									"scope:prisma"
 								]
 							},
 							{
 								"sourceTag": "scope:wia-client",
 								"onlyDependOnLibsWithTags": [
 									"scope:shared",
-									"scope:wia-client"
+									"scope:wia-client",
+									"scope:prisma"
 								]
 							}
 						]

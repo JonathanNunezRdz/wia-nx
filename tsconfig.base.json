@@ -16,7 +16,6 @@
 		"baseUrl": ".",
 		"paths": {
 			"@wia-client/*": ["apps/wia-client/*"],
-			"@wia-nx/prisma": ["libs/prisma-orm/src/index.ts"],
 			"@wia-nx/types": ["libs/wia-types/src/index.ts"],
 			"@wia-server/*": ["apps/wia-server/*"]
 		},

@@ -22,7 +22,7 @@ export interface UserState {
 	} & RequestStatus;
 }
 
-export const prismaSelectUser = Prisma.validator<Prisma.UserArgs>()({
+export const prismaSelectUser = Prisma.validator<Prisma.UserDefaultArgs>()({
 	select: {
 		id: true,
 		createdAt: true,
