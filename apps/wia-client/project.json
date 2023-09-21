@@ -16,7 +16,8 @@
 					"outputPath": "apps/wia-client"
 				},
 				"production": {}
-			}
+			},
+			"dependsOn": ["prisma:generate-types"]
 		},
 		"serve": {
 			"executor": "@nx/next:server",
