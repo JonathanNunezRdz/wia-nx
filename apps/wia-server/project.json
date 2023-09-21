@@ -21,7 +21,8 @@
 			"configurations": {
 				"development": {},
 				"production": {}
-			}
+			},
+			"dependsOn": ["prisma:prepare-db"]
 		},
 		"serve": {
 			"executor": "@nx/js:node",
