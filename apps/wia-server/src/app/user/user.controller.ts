@@ -54,8 +54,8 @@ export class UserController {
 
 	@Patch('migrate')
 	migrate() {
-		return this.userService.migrate();
-		// return false;
+		// return this.userService.migrate();
+		return false;
 	}
 
 	// delete routes

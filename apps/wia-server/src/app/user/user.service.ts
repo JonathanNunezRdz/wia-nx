@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ImageFormat, Prisma, PrismaPromise } from '@prisma/client';
-import { MediaType, User, WaifuLevel } from '@prisma/client';
+import { User } from '@prisma/client';
 import {
 	EditUserResponse,
 	EditUserService,
@@ -20,10 +19,10 @@ import { upsertUserImage } from '@wia-server/src/utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 
-import animes from '../../../tmp/dumps/main.animes.json';
-import mangas from '../../../tmp/dumps/main.mangas.json';
-import videogames from '../../../tmp/dumps/main.videogames.json';
-import waifus from '../../../tmp/dumps/main.waifus.json';
+// import animes from '../../../tmp/dumps/main.animes.json';
+// import mangas from '../../../tmp/dumps/main.mangas.json';
+// import videogames from '../../../tmp/dumps/main.videogames.json';
+// import waifus from '../../../tmp/dumps/main.waifus.json';
 // import users from '../../../tmp/dumps/main.users.json';
 
 @Injectable()
@@ -499,314 +498,314 @@ export class UserService {
 	// 	});
 	// }
 
-	async migrate() {
-		const parseDateFromOID = (oid: string) =>
-			new Date(parseInt(oid.slice(0, 8), 16) * 1000).toISOString();
+	// async migrate() {
+	// 	const parseDateFromOID = (oid: string) =>
+	// 		new Date(parseInt(oid.slice(0, 8), 16) * 1000).toISOString();
 
-		// const hashedPassword = await hash('password');
-		// const createUsers: Prisma.UserCreateManyInput[] = users.map((elem) => {
-		// 	return {
-		// 		alias: elem.alias,
-		// 		email: elem.email,
-		// 		firstName: elem.firstName,
-		// 		lastName: elem.lastName,
-		// 		hash: hashedPassword,
-		// 		uid: elem.uid,
-		// 	};
-		// });
+	// 	// const hashedPassword = await hash('password');
+	// 	// const createUsers: Prisma.UserCreateManyInput[] = users.map((elem) => {
+	// 	// 	return {
+	// 	// 		alias: elem.alias,
+	// 	// 		email: elem.email,
+	// 	// 		firstName: elem.firstName,
+	// 	// 		lastName: elem.lastName,
+	// 	// 		hash: hashedPassword,
+	// 	// 		uid: elem.uid,
+	// 	// 	};
+	// 	// });
 
-		// await this.prisma.user.createMany({
-		// 	data: createUsers,
-		// });
+	// 	// await this.prisma.user.createMany({
+	// 	// 	data: createUsers,
+	// 	// });
 
-		/**
-		 * create an object of users where each key represents the user uid
-		 * and the value represents its prisma generated id
-		 */
-		const createdUsers: Record<string, { id: string }> = {};
-		(
-			await this.prisma.user.findMany({
-				select: {
-					uid: true,
-					id: true,
-				},
-			})
-		).forEach((user) => {
-			createdUsers[user.uid] = { id: user.id };
-		});
+	// 	/**
+	// 	 * create an object of users where each key represents the user uid
+	// 	 * and the value represents its prisma generated id
+	// 	 */
+	// 	const createdUsers: Record<string, { id: string }> = {};
+	// 	(
+	// 		await this.prisma.user.findMany({
+	// 			select: {
+	// 				uid: true,
+	// 				id: true,
+	// 			},
+	// 		})
+	// 	).forEach((user) => {
+	// 		createdUsers[user.uid] = { id: user.id };
+	// 	});
 
-		console.log('got users ids');
+	// 	console.log('got users ids');
 
-		/**
-		 * create an object where each key represents a media title
-		 * and its value represents the contents of the original media
-		 */
-		const originalMedia: Record<
-			string,
-			{
-				knownBy: { uid: string; knownAt: Date }[];
-				image: { has: boolean; path: string };
-				id: string;
-				mongoId: string;
-			}
-		> = {};
-		/**
-		 * create an object where each key represents a media id from mongo
-		 * and each value represents its id from prisma
-		 */
-		const mediaByOID: Record<string, string> = {};
+	// 	/**
+	// 	 * create an object where each key represents a media title
+	// 	 * and its value represents the contents of the original media
+	// 	 */
+	// 	const originalMedia: Record<
+	// 		string,
+	// 		{
+	// 			knownBy: { uid: string; knownAt: Date }[];
+	// 			image: { has: boolean; path: string };
+	// 			id: string;
+	// 			mongoId: string;
+	// 		}
+	// 	> = {};
+	// 	/**
+	// 	 * create an object where each key represents a media id from mongo
+	// 	 * and each value represents its id from prisma
+	// 	 */
+	// 	const mediaByOID: Record<string, string> = {};
 
-		const createMedia: Prisma.MediaCreateManyInput[] = [];
+	// 	const createMedia: Prisma.MediaCreateManyInput[] = [];
 
-		animes.forEach((anime) => {
-			createMedia.push({
-				title: anime.title,
-				type: 'anime',
-				createdAt: parseDateFromOID(anime._id.$oid),
-			});
+	// 	animes.forEach((anime) => {
+	// 		createMedia.push({
+	// 			title: anime.title,
+	// 			type: 'anime',
+	// 			createdAt: parseDateFromOID(anime._id.$oid),
+	// 		});
 
-			if (!originalMedia[anime.title])
-				originalMedia[anime.title] = {
-					knownBy: anime.watchedBy.map((user) => {
-						return {
-							uid: user.uid,
-							knownAt: new Date(user.date.$date),
-						};
-					}),
-					image: { ...anime.image },
-					id: '',
-					mongoId: anime._id.$oid,
-				};
-		});
+	// 		if (!originalMedia[anime.title])
+	// 			originalMedia[anime.title] = {
+	// 				knownBy: anime.watchedBy.map((user) => {
+	// 					return {
+	// 						uid: user.uid,
+	// 						knownAt: new Date(user.date.$date),
+	// 					};
+	// 				}),
+	// 				image: { ...anime.image },
+	// 				id: '',
+	// 				mongoId: anime._id.$oid,
+	// 			};
+	// 	});
 
-		mangas.forEach((manga) => {
-			createMedia.push({
-				title: manga.title,
-				type: 'manga',
-				createdAt: parseDateFromOID(manga._id.$oid),
-			});
+	// 	mangas.forEach((manga) => {
+	// 		createMedia.push({
+	// 			title: manga.title,
+	// 			type: 'manga',
+	// 			createdAt: parseDateFromOID(manga._id.$oid),
+	// 		});
 
-			if (!originalMedia[manga.title])
-				originalMedia[manga.title] = {
-					knownBy: manga.readBy.map((user) => {
-						return {
-							uid: user.uid,
-							knownAt: new Date(user.date.$date),
-						};
-					}),
-					image: { ...manga.image },
-					id: '',
-					mongoId: manga._id.$oid,
-				};
-		});
+	// 		if (!originalMedia[manga.title])
+	// 			originalMedia[manga.title] = {
+	// 				knownBy: manga.readBy.map((user) => {
+	// 					return {
+	// 						uid: user.uid,
+	// 						knownAt: new Date(user.date.$date),
+	// 					};
+	// 				}),
+	// 				image: { ...manga.image },
+	// 				id: '',
+	// 				mongoId: manga._id.$oid,
+	// 			};
+	// 	});
 
-		videogames.forEach((videogame) => {
-			createMedia.push({
-				title: videogame.title,
-				type: 'videogame',
-				createdAt: parseDateFromOID(videogame._id.$oid),
-			});
+	// 	videogames.forEach((videogame) => {
+	// 		createMedia.push({
+	// 			title: videogame.title,
+	// 			type: 'videogame',
+	// 			createdAt: parseDateFromOID(videogame._id.$oid),
+	// 		});
 
-			if (!originalMedia[videogame.title])
-				originalMedia[videogame.title] = {
-					knownBy: videogame.playedBy.map((user) => {
-						return {
-							uid: user.uid,
-							knownAt: new Date(user.date.$date),
-						};
-					}),
-					image: { ...videogame.image },
-					id: '',
-					mongoId: videogame._id.$oid,
-				};
-		});
+	// 		if (!originalMedia[videogame.title])
+	// 			originalMedia[videogame.title] = {
+	// 				knownBy: videogame.playedBy.map((user) => {
+	// 					return {
+	// 						uid: user.uid,
+	// 						knownAt: new Date(user.date.$date),
+	// 					};
+	// 				}),
+	// 				image: { ...videogame.image },
+	// 				id: '',
+	// 				mongoId: videogame._id.$oid,
+	// 			};
+	// 	});
 
-		await this.prisma.media.createMany({
-			data: createMedia,
-		});
+	// 	await this.prisma.media.createMany({
+	// 		data: createMedia,
+	// 	});
 
-		console.log('created media');
+	// 	console.log('created media');
 
-		const medias = await this.prisma.media.findMany({
-			select: {
-				id: true,
-				title: true,
-			},
-		});
+	// 	const medias = await this.prisma.media.findMany({
+	// 		select: {
+	// 			id: true,
+	// 			title: true,
+	// 		},
+	// 	});
 
-		console.log('got media ids');
+	// 	console.log('got media ids');
 
-		medias.forEach((media) => {
-			console.log('media title:', media.title);
-			console.log('media id:', media.id);
-			originalMedia[media.title].id = media.id;
-		});
+	// 	medias.forEach((media) => {
+	// 		console.log('media title:', media.title);
+	// 		console.log('media id:', media.id);
+	// 		originalMedia[media.title].id = media.id;
+	// 	});
 
-		const mediaPromises: PrismaPromise<unknown>[] = [];
-		const imagePromises: PrismaPromise<unknown>[] = [];
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		Object.entries(originalMedia).forEach(([title, media]) => {
-			mediaPromises.push(
-				this.prisma.media.update({
-					where: {
-						id: media.id,
-					},
-					data: {
-						knownBy: {
-							create: media.knownBy.map((user) => {
-								return {
-									user: {
-										connect: {
-											id: createdUsers[user.uid].id,
-										},
-									},
-									knownAt: user.knownAt.toISOString(),
-								};
-							}),
-						},
-					},
-				})
-			);
+	// 	const mediaPromises: PrismaPromise<unknown>[] = [];
+	// 	const imagePromises: PrismaPromise<unknown>[] = [];
+	// 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	// 	Object.entries(originalMedia).forEach(([title, media]) => {
+	// 		mediaPromises.push(
+	// 			this.prisma.media.update({
+	// 				where: {
+	// 					id: media.id,
+	// 				},
+	// 				data: {
+	// 					knownBy: {
+	// 						create: media.knownBy.map((user) => {
+	// 							return {
+	// 								user: {
+	// 									connect: {
+	// 										id: createdUsers[user.uid].id,
+	// 									},
+	// 								},
+	// 								knownAt: user.knownAt.toISOString(),
+	// 							};
+	// 						}),
+	// 					},
+	// 				},
+	// 			})
+	// 		);
 
-			mediaByOID[media.mongoId] = media.id;
+	// 		mediaByOID[media.mongoId] = media.id;
 
-			if (media.image.has) {
-				imagePromises.push(
-					this.prisma.image.create({
-						data: {
-							format: media.image.path
-								.split('.')
-								.pop() as ImageFormat,
-							media: {
-								create: {
-									mediaId: media.id,
-								},
-							},
-						},
-					})
-				);
-			}
-		});
+	// 		if (media.image.has) {
+	// 			imagePromises.push(
+	// 				this.prisma.image.create({
+	// 					data: {
+	// 						format: media.image.path
+	// 							.split('.')
+	// 							.pop() as ImageFormat,
+	// 						media: {
+	// 							create: {
+	// 								mediaId: media.id,
+	// 							},
+	// 						},
+	// 					},
+	// 				})
+	// 			);
+	// 		}
+	// 	});
 
-		await this.prisma.$transaction(mediaPromises);
+	// 	await this.prisma.$transaction(mediaPromises);
 
-		console.log('updated media');
+	// 	console.log('updated media');
 
-		await this.prisma.$transaction(imagePromises);
+	// 	await this.prisma.$transaction(imagePromises);
 
-		console.log('created media images');
+	// 	console.log('created media images');
 
-		const WaifuLevels = {
-			1: 'topWaifu',
-			2: 'chunin',
-			3: 'genin',
-			4: 'nationalTreasure',
-		};
+	// 	const WaifuLevels = {
+	// 		1: 'topWaifu',
+	// 		2: 'chunin',
+	// 		3: 'genin',
+	// 		4: 'nationalTreasure',
+	// 	};
 
-		const getWaifus = () => waifus;
+	// 	const getWaifus = () => waifus;
 
-		type MediaTypeExt = '_anime' | '_manga' | '_videogame';
-		function assertMediaType(from: string): from is MediaType {
-			return ['anime', 'manga', 'videogame'].includes(from);
-		}
-		function assertFromString(from: string): MediaTypeExt {
-			if (assertMediaType(from)) {
-				return `_${from}`;
-			}
-			throw new Error(`not a valid media type ${JSON.stringify(from)}`);
-		}
+	// 	type MediaTypeExt = '_anime' | '_manga' | '_videogame';
+	// 	function assertMediaType(from: string): from is MediaType {
+	// 		return ['anime', 'manga', 'videogame'].includes(from);
+	// 	}
+	// 	function assertFromString(from: string): MediaTypeExt {
+	// 		if (assertMediaType(from)) {
+	// 			return `_${from}`;
+	// 		}
+	// 		throw new Error(`not a valid media type ${JSON.stringify(from)}`);
+	// 	}
 
-		const getMediaIdFromMediaOID = (
-			waifu: ReturnType<typeof getWaifus>[0]
-		) => {
-			const fromKey = assertFromString(waifu.from);
-			const mediaTypeFrom = waifu[fromKey];
-			if (typeof mediaTypeFrom !== 'undefined') {
-				return mediaByOID[mediaTypeFrom.$oid];
-			}
-			throw new Error(
-				`media id not found with OID ${JSON.stringify(waifu)}`
-			);
-		};
+	// 	const getMediaIdFromMediaOID = (
+	// 		waifu: ReturnType<typeof getWaifus>[0]
+	// 	) => {
+	// 		const fromKey = assertFromString(waifu.from);
+	// 		const mediaTypeFrom = waifu[fromKey];
+	// 		if (typeof mediaTypeFrom !== 'undefined') {
+	// 			return mediaByOID[mediaTypeFrom.$oid];
+	// 		}
+	// 		throw new Error(
+	// 			`media id not found with OID ${JSON.stringify(waifu)}`
+	// 		);
+	// 	};
 
-		const createManyWaifus: Prisma.WaifuCreateManyInput[] = [];
-		const createWaifuImage: Record<
-			string,
-			{ format: ImageFormat; waifuId: string }
-		> = {};
-		waifus.forEach((waifu) => {
-			const createWaifu: Prisma.WaifuCreateManyInput = {
-				name: waifu.name,
-				since: parseDateFromOID(waifu._id.$oid),
-				level: WaifuLevels[waifu.type as 1 | 2 | 3 | 4] as WaifuLevel,
-				mediaId: getMediaIdFromMediaOID(waifu),
-				userId: createdUsers[waifu.uid].id,
-				createdAt: parseDateFromOID(waifu._id.$oid),
-			};
-			createManyWaifus.push(createWaifu);
+	// 	const createManyWaifus: Prisma.WaifuCreateManyInput[] = [];
+	// 	const createWaifuImage: Record<
+	// 		string,
+	// 		{ format: ImageFormat; waifuId: string }
+	// 	> = {};
+	// 	waifus.forEach((waifu) => {
+	// 		const createWaifu: Prisma.WaifuCreateManyInput = {
+	// 			name: waifu.name,
+	// 			since: parseDateFromOID(waifu._id.$oid),
+	// 			level: WaifuLevels[waifu.type as 1 | 2 | 3 | 4] as WaifuLevel,
+	// 			mediaId: getMediaIdFromMediaOID(waifu),
+	// 			userId: createdUsers[waifu.uid].id,
+	// 			createdAt: parseDateFromOID(waifu._id.$oid),
+	// 		};
+	// 		createManyWaifus.push(createWaifu);
 
-			if (waifu.image.has) {
-				createWaifuImage[`${createWaifu.name}-${createWaifu.mediaId}`] =
-					{
-						format: waifu.image.path
-							.split('.')
-							.pop() as ImageFormat,
-						waifuId: '',
-					};
-			}
-		});
+	// 		if (waifu.image.has) {
+	// 			createWaifuImage[`${createWaifu.name}-${createWaifu.mediaId}`] =
+	// 				{
+	// 					format: waifu.image.path
+	// 						.split('.')
+	// 						.pop() as ImageFormat,
+	// 					waifuId: '',
+	// 				};
+	// 		}
+	// 	});
 
-		await this.prisma.waifu.createMany({
-			data: createManyWaifus,
-		});
+	// 	await this.prisma.waifu.createMany({
+	// 		data: createManyWaifus,
+	// 	});
 
-		console.log('created waifus');
+	// 	console.log('created waifus');
 
-		const createdWaifus = await this.prisma.waifu.findMany({
-			select: {
-				name: true,
-				id: true,
-				media: {
-					select: {
-						id: true,
-					},
-				},
-			},
-		});
+	// 	const createdWaifus = await this.prisma.waifu.findMany({
+	// 		select: {
+	// 			name: true,
+	// 			id: true,
+	// 			media: {
+	// 				select: {
+	// 					id: true,
+	// 				},
+	// 			},
+	// 		},
+	// 	});
 
-		console.log('got waifus ids');
+	// 	console.log('got waifus ids');
 
-		createdWaifus.forEach((waifu) => {
-			if (createWaifuImage[`${waifu.name}-${waifu.media.id}`])
-				createWaifuImage[`${waifu.name}-${waifu.media.id}`].waifuId =
-					waifu.id;
-		});
+	// 	createdWaifus.forEach((waifu) => {
+	// 		if (createWaifuImage[`${waifu.name}-${waifu.media.id}`])
+	// 			createWaifuImage[`${waifu.name}-${waifu.media.id}`].waifuId =
+	// 				waifu.id;
+	// 	});
 
-		const waifuImagePromises: PrismaPromise<unknown>[] = [];
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		Object.entries(createWaifuImage).forEach(([nameMediaId, props]) => {
-			waifuImagePromises.push(
-				this.prisma.image.create({
-					data: {
-						format: props.format,
-						waifu: {
-							create: {
-								waifu: {
-									connect: {
-										id: props.waifuId,
-									},
-								},
-							},
-						},
-					},
-				})
-			);
-		});
+	// 	const waifuImagePromises: PrismaPromise<unknown>[] = [];
+	// 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	// 	Object.entries(createWaifuImage).forEach(([nameMediaId, props]) => {
+	// 		waifuImagePromises.push(
+	// 			this.prisma.image.create({
+	// 				data: {
+	// 					format: props.format,
+	// 					waifu: {
+	// 						create: {
+	// 							waifu: {
+	// 								connect: {
+	// 									id: props.waifuId,
+	// 								},
+	// 							},
+	// 						},
+	// 					},
+	// 				},
+	// 			})
+	// 		);
+	// 	});
 
-		await this.prisma.$transaction(waifuImagePromises);
+	// 	await this.prisma.$transaction(waifuImagePromises);
 
-		console.log('created waifu images');
-	}
+	// 	console.log('created waifu images');
+	// }
 
 	// get services
 
