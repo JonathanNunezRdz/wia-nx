@@ -18,6 +18,8 @@ import {
 	knowMediaAction,
 } from './actions';
 
+export * from './mediaApi';
+
 const initialState: MediaState = {
 	get: {
 		data: [],

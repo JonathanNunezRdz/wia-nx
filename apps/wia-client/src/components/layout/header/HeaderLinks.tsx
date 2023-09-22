@@ -1,7 +1,9 @@
+'use client';
 import { Link } from '@chakra-ui/next-js';
 import { Spinner } from '@chakra-ui/react';
+import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 import { useAppSelector } from '@wia-client/src/store/hooks';
-import { selectAuth, selectUser } from '@wia-client/src/store/user';
+import { useGetMeQuery } from '@wia-client/src/store/user';
 import { useMemo } from 'react';
 
 interface IHeaderLinksProps {
@@ -10,7 +12,9 @@ interface IHeaderLinksProps {
 
 function HeaderLinks({ links }: IHeaderLinksProps) {
 	const { isLoggedIn } = useAppSelector(selectAuth);
-	const { status, data: user } = useAppSelector(selectUser);
+	const user = useGetMeQuery(undefined, {
+		skip: !isLoggedIn,
+	});
 
 	const LinkComponents = useMemo(() => {
 		return links.map((link) => {
@@ -22,7 +26,7 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 		});
 	}, [links]);
 
-	if (isLoggedIn && status === 'loading')
+	if (user.isLoading)
 		return (
 			<>
 				{LinkComponents}
@@ -30,12 +34,12 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 			</>
 		);
 
-	if (isLoggedIn && status === 'succeeded')
+	if (user.isSuccess)
 		return (
 			<>
 				{LinkComponents}
 				<Link href='/user' me='1rem'>
-					{user.alias}
+					{user.data.alias}
 				</Link>
 			</>
 		);

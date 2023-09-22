@@ -1,14 +1,15 @@
+'use client';
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import {
-	selectSignIn,
-	selectUser,
-	getLoggedStatus,
-} from '@wia-client/src/store/user';
-import { getUserAction } from '@wia-client/src/store/user/actions';
+import { useGetMeQuery } from '@wia-client/src/store/user';
+
 import { useEffect } from 'react';
 import Footer from './Footer';
 import { Box } from '@chakra-ui/react';
 import Header from './header';
+import {
+	selectAuth,
+	getLoggedStatus,
+} from '@wia-client/src/store/auth/authReducer';
 
 interface ILayoutProps {
 	children: React.ReactNode;
@@ -16,18 +17,17 @@ interface ILayoutProps {
 
 function Layout({ children }: ILayoutProps) {
 	const dispatch = useAppDispatch();
-	const signInStatus = useAppSelector(selectSignIn);
-	const userStatus = useAppSelector(selectUser);
+	const { checkedToken, isLoggedIn } = useAppSelector(selectAuth);
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const _ = useGetMeQuery(undefined, {
+		skip: !isLoggedIn,
+	});
 
 	useEffect(() => {
-		if (signInStatus.status === 'succeeded' && userStatus.status === 'idle')
-			dispatch(getUserAction());
-	}, [signInStatus.status, userStatus.status, dispatch]);
-
-	useEffect(() => {
-		if (signInStatus.status === 'idle' && userStatus.status === 'idle')
+		if (!checkedToken && !isLoggedIn) {
 			dispatch(getLoggedStatus());
-	}, [signInStatus.status, userStatus.status, dispatch]);
+		}
+	}, [checkedToken, isLoggedIn, dispatch]);
 
 	return (
 		<Box margin='0 auto' maxWidth={1000} transition='0.5s ease-out'>

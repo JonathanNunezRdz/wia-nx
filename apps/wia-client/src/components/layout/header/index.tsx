@@ -1,3 +1,4 @@
+'use client';
 import { Link } from '@chakra-ui/next-js';
 import { Box, Flex, Heading } from '@chakra-ui/react';
 import HeaderLinks from './HeaderLinks';

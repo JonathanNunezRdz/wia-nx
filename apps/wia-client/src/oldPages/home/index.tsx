@@ -1,3 +1,4 @@
+'use client';
 import { Box, Heading } from '@chakra-ui/react';
 import Body from '../../components/layout/Body';
 

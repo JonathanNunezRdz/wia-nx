@@ -1,14 +1,14 @@
 import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit';
-import mediaReducer from './media';
-import userReducer from './user';
-import waifuReducer from './waifu';
+import { baseApi } from './api';
+import authReducer from './auth/authReducer';
 
 export const store = configureStore({
 	reducer: {
-		media: mediaReducer,
-		waifu: waifuReducer,
-		user: userReducer,
+		auth: authReducer,
+		[baseApi.reducerPath]: baseApi.reducer,
 	},
+	middleware: (getDefaultMiddleware) =>
+		getDefaultMiddleware().concat(baseApi.middleware),
 });
 
 export type AppDispatch = typeof store.dispatch;
