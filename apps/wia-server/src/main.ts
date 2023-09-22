@@ -10,7 +10,9 @@ async function bootstrap() {
 			transform: true,
 		})
 	);
-	app.enableCors();
+	app.enableCors({
+		origin: ['189.158.226.204'],
+	});
 
 	const globalPrefix = 'api';
 	app.setGlobalPrefix(globalPrefix);
