@@ -11,7 +11,7 @@ async function bootstrap() {
 		})
 	);
 	app.enableCors({
-		origin: ['189.158.226.204'],
+		origin: ['http://localhost:4200'],
 	});
 
 	const globalPrefix = 'api';
