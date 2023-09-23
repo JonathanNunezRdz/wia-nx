@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { stringify } from 'qs';
 import { RootState } from '.';
 
 function getBaseUrl() {
@@ -22,6 +23,12 @@ export const baseApi = createApi({
 				headers.set('Authorization', `Bearer ${token}`);
 			}
 			return headers;
+		},
+		paramsSerializer: (params) => {
+			return stringify(params, {
+				encode: false,
+				arrayFormat: 'comma',
+			});
 		},
 	}),
 	tagTypes: [

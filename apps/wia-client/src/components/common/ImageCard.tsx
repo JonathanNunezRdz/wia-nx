@@ -1,3 +1,4 @@
+'use client';
 import { Box, Center, Image } from '@chakra-ui/react';
 import { MediaResponse, WaifuResponse } from '@wia-nx/types';
 import { MediaType } from '@prisma/client';
@@ -16,6 +17,7 @@ interface ImageCardProps {
 
 const ImageCard = ({ image, type, imageName }: ImageCardProps) => {
 	const [imageSrc, setImageSrc] = useState('');
+
 	useEffect(() => {
 		const getImage = async () => {
 			if (image && image.src) {
@@ -27,7 +29,9 @@ const ImageCard = ({ image, type, imageName }: ImageCardProps) => {
 		};
 		getImage();
 	}, [image]);
-	const has = !!image;
+
+	const has = typeof image !== 'undefined';
+
 	if (!has) return <></>;
 	return (
 		<Box>

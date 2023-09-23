@@ -1,10 +1,13 @@
-'use client';
 import { Link } from '@chakra-ui/next-js';
 import { Spinner } from '@chakra-ui/react';
 import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 import { useAppSelector } from '@wia-client/src/store/hooks';
 import { useGetMeQuery } from '@wia-client/src/store/user';
 import { useMemo } from 'react';
+
+// async function getData() {
+// 	const res = await fetch()
+// }
 
 interface IHeaderLinksProps {
 	links: string[];

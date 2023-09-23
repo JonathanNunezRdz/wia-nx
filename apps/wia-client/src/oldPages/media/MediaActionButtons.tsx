@@ -1,11 +1,9 @@
 import { AddIcon, CheckIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { Box, IconButton } from '@chakra-ui/react';
 import LinkButton from '@wia-client/src/components/common/LinkButton';
-import { useAppDispatch } from '@wia-client/src/store/hooks';
 
-import { deleteMediaAction } from '@wia-client/src/store/media/actions';
 import { MediaType } from '@prisma/client';
-import { useRouter } from 'next/router';
+import { useDeleteMediaMutation } from '@wia-client/src/store/media';
 
 interface KnowQuery {
 	knownByMe: false;
@@ -22,27 +20,24 @@ interface EditQuery {
 interface MediaActionButtonsProps {
 	isLoggedIn: boolean;
 	query: KnowQuery | EditQuery;
+	handleDeleting: (id: string) => void;
 }
 
-function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
+function MediaActionButtons({
+	isLoggedIn,
+	query,
+	handleDeleting,
+}: MediaActionButtonsProps) {
 	// rtk hooks
-	const dispatch = useAppDispatch();
-
-	// next hooks
-	const router = useRouter();
+	const [deleteMedia] = useDeleteMediaMutation();
 
 	// react hooks
 
 	// functions
 	const handleDeleteMedia = async () => {
-		const from = (): Parameters<typeof deleteMediaAction>[0]['from'] => {
-			if (router.pathname === '/media') return '/media';
-			if (router.pathname === '/media/waifus') return '/media/waifus';
-			throw new Error('delete media from illegal place');
-		};
-		dispatch(
-			deleteMediaAction({ mediaId: query.mediaIdString, from: from() })
-		);
+		handleDeleting(query.mediaIdString);
+		await deleteMedia({ mediaId: query.mediaIdString });
+		handleDeleting('');
 	};
 
 	// render

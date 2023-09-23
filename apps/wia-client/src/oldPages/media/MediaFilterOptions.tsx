@@ -11,8 +11,7 @@ import {
 	useDisclosure,
 } from '@chakra-ui/react';
 import FilterUsersInput from '@wia-client/src/components/common/FilterUsersInput';
-import { useAppSelector } from '@wia-client/src/store/hooks';
-import { selectAllUsers } from '@wia-client/src/store/user';
+import { useGetMembersQuery } from '@wia-client/src/store/user';
 import { isValidMediaType } from '@wia-client/src/utils';
 import { MediaFilterInputs, MediaTypes } from '@wia-client/src/utils/constants';
 import { GetMediaDto } from '@wia-nx/types';
@@ -25,7 +24,7 @@ interface MediaFilterOptionsProps {
 
 const MediaFilterOptions = ({ getMedia }: MediaFilterOptionsProps) => {
 	// redux
-	const { data: members } = useAppSelector(selectAllUsers);
+	const members = useGetMembersQuery();
 
 	// chakra hooks
 	const { isOpen, onToggle } = useDisclosure();
@@ -47,7 +46,8 @@ const MediaFilterOptions = ({ getMedia }: MediaFilterOptionsProps) => {
 			if (isValidMediaType(key) && value === true) type.push(key);
 
 			if (
-				members.findIndex((member) => member.id === key) > -1 &&
+				members.isSuccess &&
+				members.data.findIndex((member) => member.id === key) > -1 &&
 				value === true
 			) {
 				users.push(key);

@@ -1,3 +1,4 @@
+'use client';
 import {
 	Box,
 	HStack,
@@ -15,10 +16,9 @@ import { Link } from '@chakra-ui/next-js';
 import MediaActionButtons from './MediaActionButtons';
 import KnownBy from './KnownBy';
 import { useCardColor } from '@wia-client/src/utils/constants';
-import ImageCard from '@wia-client/src/components/common/ImageCard';
-import { useAppSelector } from '@wia-client/src/store/hooks';
+// import ImageCard from '@wia-client/src/components/common/ImageCard';
 import Loading from '@wia-client/src/components/common/Loading';
-import { selectDeleteMedia } from '@wia-client/src/store/media';
+import { useState } from 'react';
 
 interface MediaCardProps {
 	media: MediaResponse;
@@ -27,8 +27,8 @@ interface MediaCardProps {
 }
 
 const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
-	// rtk hooks
-	const deleteStatus = useAppSelector(selectDeleteMedia);
+	// react hooks
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// chakra hooks
 	const bg = useCardColor();
@@ -37,8 +37,11 @@ const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 	const isKnownByMe =
 		media.knownBy.findIndex((user) => user.userId === ownId) !== -1;
 	const hasWaifus = media.waifus.length > 0;
-	const isDeleting =
-		deleteStatus.status === 'loading' && deleteStatus.mediaId === media.id;
+	// const isDeleting =
+	// 	deleteStatus.status === 'loading' && deleteStatus.mediaId === media.id;
+	const handleDeleting = (deleteId: string) => {
+		setIsDeleting(deleteId === media.id);
+	};
 	const hasImage = Boolean(media.image);
 
 	// render
@@ -60,11 +63,11 @@ const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 					</Center>
 				</Box>
 			)}
-			<ImageCard
+			{/* <ImageCard
 				image={media.image}
 				type={media.type}
 				imageName={media.title}
-			/>
+			/> */}
 			<Box
 				bg='teal.600'
 				borderRadius='md'
@@ -77,6 +80,7 @@ const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 						{media.type}
 					</Text>
 					<MediaActionButtons
+						handleDeleting={handleDeleting}
 						isLoggedIn={isLoggedIn}
 						query={{
 							knownByMe: isKnownByMe,
