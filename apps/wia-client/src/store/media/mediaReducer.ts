@@ -16,7 +16,7 @@ const media = createSlice({
 	name: 'media',
 	initialState,
 	reducers: {
-		resetAnalysisReducer: () => {
+		resetMediaReducer: () => {
 			return initialState;
 		},
 		changePage: (state, action: PayloadAction<GetMediaDto>) => {
@@ -30,6 +30,6 @@ const media = createSlice({
 	},
 });
 
-export const { changePage, resetAnalysisReducer } = media.actions;
+export const { changePage: changeMediaPage, resetMediaReducer } = media.actions;
 export default media.reducer;
 export const selectMediaPage = (state: RootState) => state.media;

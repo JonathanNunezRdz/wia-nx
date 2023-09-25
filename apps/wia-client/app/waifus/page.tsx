@@ -13,32 +13,30 @@ import CustomPagination from '@wia-client/src/components/common/CustomPagination
 import LinkButton from '@wia-client/src/components/common/LinkButton';
 import Body from '@wia-client/src/components/layout/Body';
 import { usePagination } from '@wia-client/src/components/pagination';
-import MediaCard from '@wia-client/src/oldPages/media/MediaCard';
-import MediaFilterOptions from '@wia-client/src/oldPages/media/MediaFilterOptions';
+import WaifuCard from '@wia-client/src/oldPages/waifus/WaifuCard';
+import WaifuFilterOptions from '@wia-client/src/oldPages/waifus/WaifuFilterOptions';
 import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { useGetMediaQuery } from '@wia-client/src/store/media';
-import {
-	changeMediaPage,
-	selectMediaPage,
-} from '@wia-client/src/store/media/mediaReducer';
 import { useGetMeQuery } from '@wia-client/src/store/user';
+import { useGetAllWaifusQuery } from '@wia-client/src/store/waifu/waifuApi';
+import {
+	changeWaifuPage,
+	selectWaifuPage,
+} from '@wia-client/src/store/waifu/waifuReducer';
 import { useEffect } from 'react';
 
-function Media() {
+function Waifus() {
 	const dispatch = useAppDispatch();
 	const { isLoggedIn } = useAppSelector(selectAuth);
-	const user = useGetMeQuery(undefined, {
-		skip: !isLoggedIn,
-	});
-	const { page, limit, type, users, title } = useAppSelector(selectMediaPage);
+	const user = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const { limit, page, level, name, users } = useAppSelector(selectWaifuPage);
 
-	const media = useGetMediaQuery({
+	const waifus = useGetAllWaifusQuery({
 		limit,
 		page,
-		type,
+		level,
+		name,
 		users,
-		title,
 	});
 
 	const {
@@ -46,14 +44,11 @@ function Media() {
 		pagesCount,
 		currentPage,
 		isDisabled,
-		setCurrentPage,
 		setIsDisabled,
+		setCurrentPage,
 	} = usePagination({
-		total: media.data?.totalMedias || 0,
-		limits: {
-			outer: 2,
-			inner: 2,
-		},
+		total: waifus.data?.totalWaifus || 0,
+		limits: { outer: 2, inner: 2 },
 		initialState: {
 			pageSize: limit,
 			isDisabled: false,
@@ -62,28 +57,28 @@ function Media() {
 	});
 
 	const handleChangeFilters = (
-		options: ReturnType<typeof selectMediaPage>
+		options: ReturnType<typeof selectWaifuPage>
 	) => {
-		dispatch(changeMediaPage(options));
+		dispatch(changeWaifuPage(options));
 	};
-	const handleChangePage = async (nextPage: number) => {
+	const handleChangePage = (nextPage: number) => {
 		if (nextPage === page) return;
 		if (nextPage < 1) return;
 		if (nextPage > pagesCount) return;
 		setIsDisabled(true);
-		handleChangeFilters({ page: nextPage, limit, type, users, title });
+		handleChangeFilters({ page: nextPage, limit, level, users, name });
 	};
 
 	useEffect(() => {
-		if (media.isFetching) return;
-		if (media.isSuccess) {
+		if (waifus.isFetching) return;
+		if (waifus.isSuccess) {
 			setCurrentPage(page);
 			setIsDisabled(false);
 		}
 	}, [
 		page,
-		media.isFetching,
-		media.isSuccess,
+		waifus.isFetching,
+		waifus.isSuccess,
 		setCurrentPage,
 		setIsDisabled,
 	]);
@@ -93,12 +88,12 @@ function Media() {
 			<VStack w='full' spacing={4}>
 				<Box w='full'>
 					<HStack spacing={4}>
-						<Heading as='h2'>media</Heading>
+						<Heading as='h2'>waifus</Heading>
 						{isLoggedIn && (
 							<LinkButton
-								pathname='/media/add'
+								pathname='/waifus/add'
 								iconButtonProps={{
-									'aria-label': 'add media',
+									'aria-label': 'add waifu',
 									icon: <AddIcon />,
 									size: 'sm',
 									mt: 1,
@@ -107,16 +102,18 @@ function Media() {
 						)}
 						<Box>
 							<IconButton
-								aria-label='refresh media'
+								aria-label='reload waifus'
 								icon={<RepeatIcon />}
 								size='sm'
 								mt={1}
-								onClick={() => media.refetch()}
-								isLoading={media.isLoading || media.isFetching}
+								onClick={() => waifus.refetch()}
+								isLoading={
+									waifus.isLoading || waifus.isFetching
+								}
 							/>
 						</Box>
 					</HStack>
-					<MediaFilterOptions getMedia={handleChangeFilters} />
+					<WaifuFilterOptions getWaifus={handleChangeFilters} />
 				</Box>
 
 				<CustomPagination
@@ -129,18 +126,20 @@ function Media() {
 
 				<Box w='full'>
 					<SimpleGrid columns={{ sm: 2, md: 3 }} spacing={4}>
-						{media.isSuccess && media.data.medias.length > 0 ? (
-							media.data.medias.map((elem) => (
-								<MediaCard
+						{waifus.isSuccess && waifus.data.waifus.length > 0 ? (
+							waifus.data.waifus.map((elem) => (
+								<WaifuCard
 									key={elem.id}
-									media={elem}
+									waifu={elem}
 									ownId={user.data?.id || ''}
 									isLoggedIn={isLoggedIn}
 								/>
 							))
 						) : (
 							<Box>
-								<Text>no media has been added to the wia</Text>
+								<Text>
+									no waifus have been added to the wia
+								</Text>
 							</Box>
 						)}
 					</SimpleGrid>
@@ -158,4 +157,4 @@ function Media() {
 	);
 }
 
-export default Media;
+export default Waifus;

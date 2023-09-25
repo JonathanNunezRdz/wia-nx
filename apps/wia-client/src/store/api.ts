@@ -40,6 +40,7 @@ export const baseApi = createApi({
 		'MediaTitles',
 		'WaifuNames',
 		'EditMedia',
+		'EditWaifu',
 		'MediaWaifus',
 	],
 	endpoints: () => ({}),

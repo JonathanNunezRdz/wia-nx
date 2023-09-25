@@ -16,7 +16,7 @@ import { Link } from '@chakra-ui/next-js';
 import MediaActionButtons from './MediaActionButtons';
 import KnownBy from './KnownBy';
 import { useCardColor } from '@wia-client/src/utils/constants';
-// import ImageCard from '@wia-client/src/components/common/ImageCard';
+import ImageCard from '@wia-client/src/components/common/ImageCard';
 import Loading from '@wia-client/src/components/common/Loading';
 import { useState } from 'react';
 
@@ -63,11 +63,11 @@ const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 					</Center>
 				</Box>
 			)}
-			{/* <ImageCard
+			<ImageCard
 				image={media.image}
 				type={media.type}
 				imageName={media.title}
-			/> */}
+			/>
 			<Box
 				bg='teal.600'
 				borderRadius='md'
