@@ -1,12 +1,4 @@
-import {
-	Box,
-	Heading,
-	HStack,
-	IconButton,
-	SimpleGrid,
-	Text,
-	VStack,
-} from '@chakra-ui/react';
+import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect } from 'react';
 import { usePagination } from '../../components/pagination';
@@ -21,7 +13,7 @@ import { getMediasAction } from '@wia-client/src/store/media/actions';
 import Body from '@wia-client/src/components/layout/Body';
 import LinkButton from '@wia-client/src/components/common/LinkButton';
 import CustomPagination from '@wia-client/src/components/common/CustomPagination';
-import { NextSeo } from 'next-seo';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
 
 function Media() {
 	// rtk hooks
@@ -76,33 +68,31 @@ function Media() {
 	// render
 	return (
 		<Body h>
-			<NextSeo title='media' />
 			<VStack w='full' spacing='4'>
+				<PageTitle title='media'>
+					{isLoggedIn && (
+						<LinkButton
+							pathname='/media/add'
+							iconButtonProps={{
+								'aria-label': 'add media',
+								icon: <AddIcon />,
+								size: 'sm',
+								mt: 1,
+							}}
+						/>
+					)}
+					<Box>
+						<IconButton
+							aria-label='refresh media'
+							icon={<RepeatIcon />}
+							size='sm'
+							mt={1}
+							onClick={() => handleGetMedia(appliedFilters)}
+							isLoading={status === 'loading'}
+						/>
+					</Box>
+				</PageTitle>
 				<Box w='full'>
-					<HStack spacing='4'>
-						<Heading>media</Heading>
-						{isLoggedIn && (
-							<LinkButton
-								pathname='/media/add'
-								iconButtonProps={{
-									'aria-label': 'add media',
-									icon: <AddIcon />,
-									size: 'sm',
-									mt: 1,
-								}}
-							/>
-						)}
-						<Box>
-							<IconButton
-								aria-label='refresh media'
-								icon={<RepeatIcon />}
-								size='sm'
-								mt={1}
-								onClick={() => handleGetMedia(appliedFilters)}
-								isLoading={status === 'loading'}
-							/>
-						</Box>
-					</HStack>
 					<MediaFilterOptions getMedia={handleGetMedia} />
 				</Box>
 

@@ -1,4 +1,5 @@
 import { Box, Heading, HStack } from '@chakra-ui/react';
+import { NextSeo } from 'next-seo';
 import { ReactNode } from 'react';
 
 interface PageTitleProps {
@@ -9,6 +10,7 @@ interface PageTitleProps {
 const PageTitle = ({ title, children }: PageTitleProps) => {
 	return (
 		<Box w='full'>
+			<NextSeo title={title} />
 			<HStack alignItems='end'>
 				<Heading>{title}</Heading>
 				{children}

@@ -63,7 +63,7 @@ function editMedia(dto: EditMediaThunk) {
 	const { editDto, imageFile } = dto;
 
 	const formData = new FormData();
-	for (const [key, value] of Object.keys(editDto)) {
+	for (const [key, value] of Object.entries(editDto)) {
 		formData.append(key, value);
 	}
 

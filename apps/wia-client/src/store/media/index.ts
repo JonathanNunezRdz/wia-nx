@@ -77,6 +77,8 @@ export const mediaSlice = createSlice({
 	reducers: {
 		resetGetMediaToEdit: (state) => {
 			state.edit.data = {} as GetEditMediaResponse;
+			state.edit.status = 'idle';
+			state.edit.error = undefined;
 			state.edit.local.status = 'idle';
 			state.edit.local.error = undefined;
 			state.edit.server.status = 'idle';
@@ -128,6 +130,7 @@ export const mediaSlice = createSlice({
 					state.edit.data.knownAt = new Date(
 						media.knownBy[userIndex].knownAt
 					);
+					state.edit.data.image = media.image;
 					state.edit.local.status = 'succeeded';
 					state.edit.local.error = undefined;
 				}

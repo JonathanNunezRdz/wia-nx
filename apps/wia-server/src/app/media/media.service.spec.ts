@@ -1,4 +1,7 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 import { MediaService } from './media.service';
 
 describe('MediaService', () => {
@@ -6,7 +9,12 @@ describe('MediaService', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [MediaService],
+			providers: [
+				MediaService,
+				PrismaService,
+				StorageService,
+				ConfigService,
+			],
 		}).compile();
 
 		service = module.get<MediaService>(MediaService);

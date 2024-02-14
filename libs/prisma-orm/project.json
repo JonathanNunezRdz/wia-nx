@@ -8,17 +8,21 @@
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "development",
 			"options": {
-				"cwd": "libs/prisma-orm"
+				"cwd": "libs/prisma-orm",
+				"parallel": false
 			},
 			"configurations": {
 				"development": {
-					"command": "echo READY"
+					"command": "echo \\'running in dev - skipping removing db\\'"
 				},
 				"production": {
-					"command": "echo READY"
+					"command": "echo \\'running in prod - skipping removing db\\'"
 				},
 				"reset": {
-					"command": "docker compose rm dev-db -s -f -v"
+					"commands": [
+						"echo \\'running in reset - removing docker container\\'",
+						"docker compose rm dev-db -s -f -v"
+					]
 				}
 			}
 		},
@@ -34,7 +38,7 @@
 					"parallel": false
 				},
 				"production": {
-					"command": "echo READY"
+					"command": "echo \\'running in prod - skipping starting db\\'"
 				}
 			},
 			"dependsOn": ["remove-db"]

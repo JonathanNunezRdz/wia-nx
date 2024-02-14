@@ -1,7 +1,5 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import {
-	LinkBox,
-	LinkOverlay,
 	Button,
 	HStack,
 	VStack,
@@ -13,7 +11,6 @@ import {
 } from '@chakra-ui/react';
 import { CreateMediaDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
-import NextLink from 'next/link';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
 import {
@@ -104,7 +101,7 @@ const AddMedia = () => {
 		const res = await loadImage(event.currentTarget.files);
 		setCurrentImage(res.result);
 		setImageFile(res.image);
-		setValue('imageFormat', res.format);
+		setValue('imageFormat', res.format, { shouldDirty: true });
 	};
 
 	useEffect(() => {
@@ -115,10 +112,10 @@ const AddMedia = () => {
 
 	return (
 		<ProtectedPage originalUrl='/media/add'>
-			<VStack w='full' spacing='1rem'>
+			<VStack w='full' spacing={4}>
 				<PageTitle title='add media' />
 				<form onSubmit={handleSubmit(onSubmit)}>
-					<VStack spacing='4'>
+					<VStack spacing={4}>
 						<FormErrorMessageWrapper error={error?.message} />
 						<FormControl isInvalid={!!errors.title}>
 							<FormLabel htmlFor='title'>title</FormLabel>
@@ -158,6 +155,7 @@ const AddMedia = () => {
 								image={{ src: currentImage }}
 								imageName={watch('title')}
 								type={watch('type')}
+								local
 							/>
 						)}
 						<FormControl>
@@ -173,16 +171,15 @@ const AddMedia = () => {
 								height='auto'
 							/>
 						</FormControl>
+
 						<HStack>
-							<LinkBox display='inline-flex'>
-								<NextLink href='/media' passHref>
-									<LinkOverlay>
-										<Button colorScheme='red'>
-											cancel
-										</Button>
-									</LinkOverlay>
-								</NextLink>
-							</LinkBox>
+							<Button
+								type='button'
+								colorScheme='red'
+								onClick={() => router.back()}
+							>
+								cancel
+							</Button>
 							<Button
 								type='submit'
 								isDisabled={!isDirty}

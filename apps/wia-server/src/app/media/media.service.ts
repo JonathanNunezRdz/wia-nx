@@ -38,6 +38,12 @@ export class MediaService {
 
 	// get services
 
+	/**
+	 * Gets all media from db applying given filters.
+	 * If any media contains an image url, the client will download it.
+	 * @param {GetMediaDto} dto Media filters
+	 * @returns {GetMediaResponse} Media array with number of total medias
+	 */
 	async getMedias(dto: GetMediaDto): Promise<GetMediaResponse> {
 		const input = prismaMediaFindManyInput(dto);
 		const totalMedias = await this.prisma.media.count({
@@ -75,6 +81,11 @@ export class MediaService {
 		return { medias, totalMedias };
 	}
 
+	/**
+	 * Retrieve media titles that given userId has "known"
+	 * @param {User['id']} userId user uuid
+	 * @returns {GetMediaTitlesResponse} media titles and id array
+	 */
 	async getMediaTitles(userId: User['id']): Promise<GetMediaTitlesResponse> {
 		const mediaTitles = await this.prisma.media.findMany({
 			where: {
@@ -285,6 +296,12 @@ export class MediaService {
 
 	// post services
 
+	/**
+	 * Creates a new media object and saves to db. Accceps an image to save to FirebaseStorage.
+	 * Throws if media name already exists.
+	 * @param {CreateMediaService} dto media info
+	 * @returns {CreateMediaResponse} created media with updated number of medias
+	 */
 	async createMedia(dto: CreateMediaService): Promise<CreateMediaResponse> {
 		const { userId, mediaDto } = dto;
 		let { title } = mediaDto;
@@ -574,7 +591,6 @@ export class MediaService {
 
 		let image: EditMediaResponse['image'];
 
-		// TODO: update code to make changes to firebase instead
 		if (imageFile && rawMedia.image) {
 			// originalMedia did have an image before
 			if (oldMedia.image) {
@@ -595,6 +611,18 @@ export class MediaService {
 					rawMedia.image.image.format
 				),
 			};
+		} else if (!imageFile && rawMedia.image && oldMedia.image) {
+			const oldImageName = this.storage.getFirebaseImageString(
+				oldMedia.title,
+				oldMedia.type,
+				oldMedia.image.image.format
+			);
+			const newImageName = this.storage.getFirebaseImageString(
+				rawMedia.title,
+				rawMedia.type,
+				rawMedia.image.image.format
+			);
+			await this.storage.changeFileName(oldImageName, newImageName);
 		}
 
 		const media: EditMediaResponse = {

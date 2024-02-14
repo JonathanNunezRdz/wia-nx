@@ -5,13 +5,11 @@ import {
 	VStack,
 	Button,
 	Text,
-	LinkBox,
-	LinkOverlay,
 	HStack,
 } from '@chakra-ui/react';
 import { KnowMediaDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
-import NextLink from 'next/link';
+
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
 import { selectKnowMedia } from '@wia-client/src/store/media';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -85,15 +83,13 @@ const KnowMedia = () => {
 							/>
 						</FormControl>
 						<HStack>
-							<LinkBox display='inline-flex'>
-								<NextLink href='/media' passHref>
-									<LinkOverlay>
-										<Button colorScheme='red'>
-											cancel
-										</Button>
-									</LinkOverlay>
-								</NextLink>
-							</LinkBox>
+							<Button
+								colorScheme='red'
+								onClick={() => router.back()}
+							>
+								cancel
+							</Button>
+
 							<Button
 								type='submit'
 								isLoading={status === 'loading'}

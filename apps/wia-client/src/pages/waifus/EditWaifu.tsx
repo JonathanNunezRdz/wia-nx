@@ -1,6 +1,4 @@
 import {
-	LinkBox,
-	LinkOverlay,
 	Button,
 	HStack,
 	VStack,
@@ -12,10 +10,9 @@ import {
 } from '@chakra-ui/react';
 import { EditWaifuDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
-import NextLink from 'next/link';
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
 import { selectEditWaifu } from '@wia-client/src/store/waifu';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { formatImageFileName, loadImage } from '@wia-client/src/utils';
 import { editWaifuAction } from '@wia-client/src/store/waifu/actions';
@@ -98,13 +95,19 @@ function EditWaifu() {
 		setValue('imageFormat', res.format, { shouldDirty: true });
 	};
 
+	useEffect(() => {
+		if (waifuToEdit.image && typeof imageFile === 'undefined') {
+			setCurrentImage(waifuToEdit.image.src);
+		}
+	}, [waifuToEdit.image, imageFile]);
+
 	// render
 	return (
 		<ProtectedPage originalUrl='/waifus/edit'>
-			<VStack w='full' spacing='4'>
+			<VStack w='full' spacing={4}>
 				<PageTitle title='edit waifu' />
 				<form onSubmit={handleSubmit(onSubmit)}>
-					<VStack spacing='4'>
+					<VStack spacing={4}>
 						<FormErrorMessageWrapper error={error?.message} />
 						<FormControl isInvalid={Boolean(errors.name)}>
 							<FormLabel htmlFor='name'>name</FormLabel>
@@ -151,14 +154,7 @@ function EditWaifu() {
 								image={{ src: currentImage }}
 								imageName={watch('name') || waifuToEdit.name}
 								type='waifu'
-							/>
-						)}
-
-						{currentImage === '' && waifuToEdit.image?.src && (
-							<ImageCard
-								image={{ src: waifuToEdit.image.src }}
-								imageName={waifuToEdit.name}
-								type='waifu'
+								local={currentImage !== waifuToEdit.image?.src}
 							/>
 						)}
 
@@ -177,15 +173,13 @@ function EditWaifu() {
 						</FormControl>
 
 						<HStack>
-							<LinkBox display='inline-flex'>
-								<NextLink href='/media' passHref>
-									<LinkOverlay>
-										<Button colorScheme='red'>
-											cancel
-										</Button>
-									</LinkOverlay>
-								</NextLink>
-							</LinkBox>
+							<Button
+								colorScheme='red'
+								onClick={() => router.back()}
+							>
+								cancel
+							</Button>
+
 							<Button
 								type='submit'
 								disabled={!isDirty}

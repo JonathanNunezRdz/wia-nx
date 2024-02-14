@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ImageFormat, MediaType } from '@prisma/client';
 import { ServiceAccount } from 'firebase-admin';
-import { cert, initializeApp } from 'firebase-admin/app';
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
 import 'multer';
 import serviceAccount from './serviceAccountKey.json';
@@ -11,7 +11,7 @@ import serviceAccount from './serviceAccountKey.json';
 export class StorageService {
 	private readonly bucket;
 
-	constructor(config: ConfigService) {
+	constructor(private config: ConfigService) {
 		const serviceAccountCred = serviceAccount;
 		const privateKey = config.get<string>('FIREBASE_PRIVATE_KEY');
 		if (typeof privateKey === 'undefined' || privateKey === '') {
@@ -20,10 +20,13 @@ export class StorageService {
 			);
 		}
 		serviceAccountCred.private_key = privateKey;
-		initializeApp({
-			credential: cert(serviceAccountCred as ServiceAccount),
-			storageBucket: 'wia-web-app.appspot.com',
-		});
+		if (!getApps().length) {
+			initializeApp({
+				credential: cert(serviceAccountCred as ServiceAccount),
+				storageBucket: 'wia-web-app.appspot.com',
+			});
+		}
+
 		this.bucket = getStorage().bucket();
 	}
 
@@ -32,7 +35,9 @@ export class StorageService {
 		type: MediaType | 'waifu' | 'user',
 		format: ImageFormat
 	) {
-		return `${type}_images/${encodeURIComponent(name)}.${format}`;
+		const env = this.config.getOrThrow<string>('NODE_ENV');
+		const folder = env === 'production' ? '' : `${env}/`;
+		return `${folder}${type}_images/${encodeURIComponent(name)}.${format}`;
 	}
 
 	async uploadFile(
@@ -52,5 +57,9 @@ export class StorageService {
 
 	async deleteFile(imageFileName: string): Promise<void> {
 		await this.bucket.file(imageFileName).delete();
+	}
+
+	async changeFileName(originalName: string, newName: string): Promise<void> {
+		await this.bucket.file(originalName).rename(newName);
 	}
 }

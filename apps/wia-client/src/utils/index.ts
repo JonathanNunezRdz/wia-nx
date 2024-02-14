@@ -1,6 +1,7 @@
 import { ImageFormat, MediaType, WaifuLevel } from '@prisma/client';
 import { HttpError, JWTPayload, JWTStatus } from '@wia-nx/types';
 import { AxiosError } from 'axios';
+import { StorageError, StorageErrorCode } from 'firebase/storage';
 import { ImageFormats, MediaTypes, WaifuLevelLabels } from './constants';
 
 export function getJWTFromLocalStorage() {
@@ -140,3 +141,15 @@ export const formatImageFileName = (
 		throw new Error('not a valid format');
 	return `${encodeURIComponent(name)}.${format}`;
 };
+
+// PENDING: Unfinished error checking for getting download url of firebase images
+export function checkImageError(error: unknown) {
+	if (error instanceof StorageError) {
+		switch (error.code) {
+			case `storage/${StorageErrorCode.OBJECT_NOT_FOUND}`:
+				return '';
+			case `storage/${StorageErrorCode.UNAUTHORIZED}`:
+				return '';
+		}
+	}
+}

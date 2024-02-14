@@ -273,6 +273,18 @@ export class WaifuService {
 					rawWaifu.image.image.format
 				),
 			};
+		} else if (!imageFile && rawWaifu.image && oldWaifu.image) {
+			const oldImageName = this.storage.getFirebaseImageString(
+				oldWaifu.name,
+				'waifu',
+				oldWaifu.image.image.format
+			);
+			const newImageName = this.storage.getFirebaseImageString(
+				rawWaifu.name,
+				'waifu',
+				rawWaifu.image.image.format
+			);
+			await this.storage.changeFileName(oldImageName, newImageName);
 		}
 
 		return { ...rawWaifu, image };

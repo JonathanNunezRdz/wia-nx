@@ -61,6 +61,7 @@ function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 						size: 'xs',
 						me: '1',
 						colorScheme: 'green',
+						title: 'add waifus',
 					}}
 				/>
 				<LinkButton
@@ -74,6 +75,7 @@ function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 						size: 'xs',
 						me: '1',
 						colorScheme: 'yellow',
+						title: 'edit media',
 					}}
 				/>
 				<IconButton
@@ -82,6 +84,7 @@ function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 					size='xs'
 					colorScheme='red'
 					onClick={handleDeleteMedia}
+					title='delete media'
 				/>
 			</Box>
 		);

@@ -19,6 +19,7 @@ const LinkButton = ({ pathname, query, iconButtonProps }: LinkButtonProps) => {
 				pathname,
 				query,
 			}}
+			title={iconButtonProps.title}
 		>
 			<IconButton {...iconButtonProps} />
 		</Link>

@@ -12,25 +12,45 @@ interface ImageCardProps {
 	type: MediaType | 'waifu';
 	imageName: string;
 	imageRoot?: string | undefined;
+	local?: boolean;
 }
 
-const ImageCard = ({ image, type, imageName }: ImageCardProps) => {
+const ImageCard = ({
+	image,
+	type,
+	imageName,
+	local = false,
+}: ImageCardProps) => {
 	const [imageSrc, setImageSrc] = useState('');
 	useEffect(() => {
 		const getImage = async () => {
 			if (image && image.src) {
-				// const imageBlob = await getBlob(ref(storage, image.src))
-				// setImageSrc(URL.createObjectURL(imageBlob));
-				const res = await getDownloadURL(ref(storage, image.src));
-				setImageSrc(res);
+				if (local) {
+					setImageSrc(image.src);
+				} else {
+					// const imageBlob = await getBlob(ref(storage, image.src))
+					// setImageSrc(URL.createObjectURL(imageBlob));
+					try {
+						const res = await getDownloadURL(
+							ref(storage, image.src)
+						);
+						setImageSrc(res);
+					} catch (error) {
+						console.error(error);
+						const res = await getDownloadURL(
+							ref(storage, 'static/Image-not-found.png')
+						);
+						setImageSrc(res);
+					}
+				}
 			}
 		};
 		getImage();
-	}, [image]);
+	}, [image, local]);
 	const has = !!image;
 	if (!has) return <></>;
 	return (
-		<Box>
+		<Box maxW='400px'>
 			<Center>
 				<Image
 					objectFit='cover'

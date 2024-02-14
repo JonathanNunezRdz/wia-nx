@@ -5,15 +5,13 @@ import {
 	FormLabel,
 	HStack,
 	Input,
-	LinkBox,
-	LinkOverlay,
 	Select,
 	VStack,
 } from '@chakra-ui/react';
 import { CreateWaifuDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
 import { ChangeEvent, useState } from 'react';
-import NextLink from 'next/link';
+
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
 import { selectAddWaifu } from '@wia-client/src/store/waifu';
 import { addWaifuAction } from '@wia-client/src/store/waifu/actions';
@@ -95,6 +93,8 @@ function AddWaifu() {
 				})
 			);
 			if (res.meta.requestStatus === 'fulfilled') {
+				// Pending: checar con oscar, si regresar al anime
+				// en el que estaba, o regresar a home, o waifus, etc
 				if (typeof mediaId === 'string') {
 					router.push({
 						pathname: '/media/waifus',
@@ -117,10 +117,10 @@ function AddWaifu() {
 	// render
 	return (
 		<ProtectedPage originalUrl='/waifus/add'>
-			<VStack w='full' spacing='4'>
+			<VStack w='full' spacing={4}>
 				<PageTitle title='add waifu' />
 				<form onSubmit={handleSubmit(onSubmit)}>
-					<VStack spacing='4'>
+					<VStack spacing={4}>
 						<FormErrorMessageWrapper
 							error={addWaifuStatus.error?.message}
 						/>
@@ -169,6 +169,7 @@ function AddWaifu() {
 								image={{ src: currentImage }}
 								imageName={watch('name')}
 								type='waifu'
+								local
 							/>
 						)}
 
@@ -187,22 +188,21 @@ function AddWaifu() {
 						</FormControl>
 
 						<HStack>
-							<LinkBox display='inline-flex'>
-								<NextLink href='/waifus' passHref>
-									<LinkOverlay>
-										<Button colorScheme='red'>
-											cancel
-										</Button>
-									</LinkOverlay>
-								</NextLink>
-							</LinkBox>
+							<Button
+								type='button'
+								colorScheme='red'
+								onClick={() => router.back()}
+							>
+								cancel
+							</Button>
+
 							<Button
 								type='submit'
 								disabled={!isDirty}
 								isLoading={addWaifuStatus.status === 'loading'}
 								colorScheme={isDirty ? 'green' : 'gray'}
 							>
-								confirm
+								add my waifu
 							</Button>
 						</HStack>
 					</VStack>

@@ -137,7 +137,7 @@ export const prismaMediaFindManyInput = (dto: GetMediaDto) =>
 		},
 		take: dto.limit,
 		orderBy: {
-			createdAt: 'asc',
+			createdAt: 'desc',
 		},
 		skip: (dto.page - 1) * dto.limit,
 		select: prismaSelectMedia.select,

@@ -3,7 +3,7 @@ import { Box, Flex, Heading } from '@chakra-ui/react';
 import HeaderLinks from './HeaderLinks';
 import ThemeToggle from './ThemeToggle';
 
-const links = ['media', 'waifus'];
+const links = ['media', 'waifus', 'trades'];
 
 function Header() {
 	return (

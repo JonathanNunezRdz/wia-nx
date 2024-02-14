@@ -1,13 +1,5 @@
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
-import {
-	Box,
-	Heading,
-	HStack,
-	IconButton,
-	SimpleGrid,
-	Text,
-	VStack,
-} from '@chakra-ui/react';
+import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import CustomPagination from '@wia-client/src/components/common/CustomPagination';
 import LinkButton from '@wia-client/src/components/common/LinkButton';
 import Body from '@wia-client/src/components/layout/Body';
@@ -16,12 +8,12 @@ import { selectAuth, selectUser } from '@wia-client/src/store/user';
 import { selectWaifus } from '@wia-client/src/store/waifu';
 import { getAllWaifusAction } from '@wia-client/src/store/waifu/actions';
 import { GetAllWaifusDto } from '@wia-nx/types';
-import { NextSeo } from 'next-seo';
 import { useCallback, useEffect } from 'react';
 
 import WaifuCard from './WaifuCard';
 import WaifuFilterOptions from './WaifuFilterOptions';
 import { usePagination } from '@wia-client/src/components/pagination';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
 
 function Waifus() {
 	// rtk hooks
@@ -77,33 +69,31 @@ function Waifus() {
 	// render
 	return (
 		<Body h>
-			<NextSeo title='waifus' />
-			<VStack w='full' spacing='4'>
+			<VStack w='full' spacing={4}>
+				<PageTitle title='waifus'>
+					{isLoggedIn && (
+						<LinkButton
+							pathname='/waifus/add'
+							iconButtonProps={{
+								'aria-label': 'add waifu',
+								icon: <AddIcon />,
+								size: 'sm',
+								mt: 1,
+							}}
+						/>
+					)}
+					<Box>
+						<IconButton
+							aria-label='refresh waifus'
+							icon={<RepeatIcon />}
+							size='sm'
+							mt={1}
+							onClick={() => handleGetWaifus(appliedFilters)}
+							isLoading={getWaifuStatus === 'loading'}
+						/>
+					</Box>
+				</PageTitle>
 				<Box w='full'>
-					<HStack spacing='4'>
-						<Heading>waifus</Heading>
-						{isLoggedIn && (
-							<LinkButton
-								pathname='/waifus/add'
-								iconButtonProps={{
-									'aria-label': 'add waifu',
-									icon: <AddIcon />,
-									size: 'sm',
-									mt: '1',
-								}}
-							/>
-						)}
-						<Box>
-							<IconButton
-								aria-label='refresh waifus'
-								icon={<RepeatIcon />}
-								size='sm'
-								mt={1}
-								onClick={() => handleGetWaifus(appliedFilters)}
-								isLoading={getWaifuStatus === 'loading'}
-							/>
-						</Box>
-					</HStack>
 					<WaifuFilterOptions getWaifus={handleGetWaifus} />
 				</Box>
 
@@ -116,7 +106,7 @@ function Waifus() {
 				/>
 
 				<Box w='full'>
-					<SimpleGrid columns={{ sm: 2, md: 3 }} spacing='4'>
+					<SimpleGrid columns={{ sm: 2, md: 3 }} spacing={4}>
 						{waifus.length > 0 ? (
 							waifus.map((element) => (
 								<WaifuCard
