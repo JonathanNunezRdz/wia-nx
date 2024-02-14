@@ -5,7 +5,8 @@
 			"runner": "nx-cloud",
 			"options": {
 				"cacheableOperations": [],
-				"accessToken": "OTUzMjkxY2MtNGExMy00MjI4LWJhNzctNWFiODIzYzJmZjgyfHJlYWQtd3JpdGU="
+				"accessToken": "",
+				"skipNxCache": true
 			}
 		}
 	},
