@@ -11,10 +11,7 @@ async function bootstrap() {
 		})
 	);
 	app.enableCors({
-		origin: [
-			'http://localhost:4200',
-			'https://wia-nx-production.up.railway.app',
-		],
+		origin: ['http://localhost:4200', 'https://wia-nx.vercel.app'],
 	});
 
 	const globalPrefix = 'api';
