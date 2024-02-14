@@ -11,7 +11,10 @@ async function bootstrap() {
 		})
 	);
 	app.enableCors({
-		origin: ['http://localhost:4200'],
+		origin: [
+			'http://localhost:4200',
+			'http://wia-nx-production.up.railway.app',
+		],
 	});
 
 	const globalPrefix = 'api';
