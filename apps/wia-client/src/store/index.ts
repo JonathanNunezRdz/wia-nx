@@ -1,5 +1,6 @@
 import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit';
 import mediaReducer from './media';
+import tradeReducer from './trade';
 import userReducer from './user';
 import waifuReducer from './waifu';
 
@@ -8,6 +9,7 @@ export const store = configureStore({
 		media: mediaReducer,
 		waifu: waifuReducer,
 		user: userReducer,
+		trade: tradeReducer,
 	},
 });
 

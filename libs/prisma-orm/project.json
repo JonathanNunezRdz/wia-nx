@@ -93,6 +93,12 @@
 				"cwd": "libs/prisma-orm"
 			}
 		},
+		"status": {
+			"command": "prisma migrate status",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			}
+		},
 		"lint": {
 			"executor": "@nx/linter:eslint",
 			"outputs": ["{options.outputFile}"],

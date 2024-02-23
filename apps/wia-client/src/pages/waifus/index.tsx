@@ -53,9 +53,7 @@ function Waifus() {
 
 	const handleChangePage = (nextPage: number) => {
 		if (nextPage === appliedFilters.page) return;
-		if (nextPage < 1) return;
-		if (nextPage > totalWaifus) return;
-		setCurrentPage(nextPage);
+		if (nextPage < 1 || nextPage > pagesCount) return;
 		handleGetWaifus({ ...appliedFilters, page: nextPage });
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};

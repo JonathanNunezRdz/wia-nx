@@ -53,7 +53,7 @@ function Media() {
 	const handleChangePage = (nextPage: number) => {
 		if (nextPage === appliedFilters.page) return;
 		if (nextPage < 1) return;
-		if (nextPage > totalMedias) return;
+		if (nextPage > pagesCount) return;
 		setCurrentPage(nextPage);
 		handleGetMedia({ ...appliedFilters, page: nextPage });
 		window.scrollTo({ top: 0, behavior: 'smooth' });

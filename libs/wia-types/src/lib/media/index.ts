@@ -11,6 +11,7 @@ import {
 export * from './create-media.dto';
 export * from './delete-media.dto';
 export * from './edit-media.dto';
+export * from './get-media-titles.dto';
 export * from './get-media.dto';
 export * from './know-media.dto';
 export * from './media.response';

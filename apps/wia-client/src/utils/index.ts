@@ -2,6 +2,7 @@ import { ImageFormat, MediaType, WaifuLevel } from '@prisma/client';
 import { HttpError, JWTPayload, JWTStatus } from '@wia-nx/types';
 import { AxiosError } from 'axios';
 import { StorageError, StorageErrorCode } from 'firebase/storage';
+import { stringify } from 'qs';
 import { ImageFormats, MediaTypes, WaifuLevelLabels } from './constants';
 
 export function getJWTFromLocalStorage() {
@@ -152,4 +153,12 @@ export function checkImageError(error: unknown) {
 				return '';
 		}
 	}
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function customParamsSerializer(params: Record<string, any>) {
+	return stringify(params, {
+		encode: false,
+		arrayFormat: 'comma',
+	});
 }

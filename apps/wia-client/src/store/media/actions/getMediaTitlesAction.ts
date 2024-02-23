@@ -10,7 +10,7 @@ export const getMediaTitlesAction = createAsyncThunk<
 	{ rejectValue: HttpError }
 >('media/getMediatitles', async (_, { rejectWithValue }) => {
 	try {
-		const { data } = await mediaService.getMediaTitles();
+		const { data } = await mediaService.getMediaTitles({});
 		return data;
 	} catch (error) {
 		const errorData = getAxiosError(error);

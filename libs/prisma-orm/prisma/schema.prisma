@@ -104,17 +104,16 @@ model WaifuImage {
 }
 
 model Trade {
-    id            String      @id @default(uuid())
-    createdAt     DateTime    @default(now())
-    updatedAt     DateTime    @updatedAt
-    endedAt       DateTime?
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
     senderId      String
+    sender        User    @relation("sender", fields: [senderId], references: [id])
     recipientId   String
-    status        TradeStatus @default(pending)
-    recipient     User        @relation("recipient", fields: [recipientId], references: [id])
-    sender        User        @relation("sender", fields: [senderId], references: [id])
-    offeredWaifus Waifu[]     @relation("offered")
-    wantedWaifus  Waifu[]     @relation("wanted")
+    recipient     User    @relation("recipient", fields: [recipientId], references: [id])
+    offeredWaifus Waifu[] @relation("offered")
+    wantedWaifus  Waifu[] @relation("wanted")
 }
 
 enum MediaType {

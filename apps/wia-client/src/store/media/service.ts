@@ -1,4 +1,5 @@
 import { Media } from '.prisma/client';
+import { customParamsSerializer } from '@wia-client/src/utils';
 import {
 	CreateMediaResponse,
 	CreateMediaThunk,
@@ -7,13 +8,13 @@ import {
 	GetEditMediaResponse,
 	GetMediaDto,
 	GetMediaResponse,
+	GetMediaTitlesDto,
 	GetMediaTitlesResponse,
 	GetMediaWaifusDto,
 	GetMediaWaifusResponse,
 	KnowMediaDto,
 	KnowMediaResponse,
 } from '@wia-nx/types';
-import { stringify } from 'qs';
 import api from '../api';
 
 // get servies
@@ -22,16 +23,18 @@ function getMedias(dto: GetMediaDto) {
 	return api.get<GetMediaResponse>('/media', {
 		params: dto,
 		paramsSerializer(params) {
-			return stringify(params, {
-				encode: false,
-				arrayFormat: 'comma',
-			});
+			return customParamsSerializer(params);
 		},
 	});
 }
 
-function getMediaTitles() {
-	return api.get<GetMediaTitlesResponse>('/media/titles');
+function getMediaTitles(dto: GetMediaTitlesDto) {
+	return api.get<GetMediaTitlesResponse>('/media/titles', {
+		params: dto,
+		paramsSerializer(params) {
+			return customParamsSerializer(params);
+		},
+	});
 }
 
 function getEditMedia(mediaId: Media['id']) {
@@ -82,10 +85,7 @@ function getMediaWaifus(title: string, dto: GetMediaWaifusDto) {
 	return api.get<GetMediaWaifusResponse>(`/media/waifu/${title}`, {
 		params: dto,
 		paramsSerializer(params) {
-			return stringify(params, {
-				encode: false,
-				arrayFormat: 'comma',
-			});
+			return customParamsSerializer(params);
 		},
 	});
 }

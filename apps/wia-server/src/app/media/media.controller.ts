@@ -23,6 +23,7 @@ import {
 	GetEditMediaResponse,
 	GetMediaDto,
 	GetMediaResponse,
+	GetMediaTitlesDto,
 	GetMediaTitlesResponse,
 	GetMediaWaifusDto,
 	GetMediaWaifusResponse,
@@ -48,9 +49,13 @@ export class MediaController {
 	@UseGuards(JwtGuard)
 	@Get('titles')
 	getMediaTitles(
-		@GetUser('id') userId: User['id']
+		@GetUser('id') userId: User['id'],
+		@Query() dto: GetMediaTitlesDto
 	): Promise<GetMediaTitlesResponse> {
-		return this.mediaService.getMediaTitles(userId);
+		return this.mediaService.getMediaTitles({
+			userId,
+			memberId: dto.memberId,
+		});
 	}
 
 	@UseGuards(JwtGuard)

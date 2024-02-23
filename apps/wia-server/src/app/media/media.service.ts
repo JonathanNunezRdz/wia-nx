@@ -3,7 +3,7 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
 	CreateMediaResponse,
 	CreateMediaService,
@@ -15,6 +15,7 @@ import {
 	GetMediaDto,
 	GetMediaResponse,
 	GetMediaTitlesResponse,
+	GetMediaTitlesService,
 	GetMediaWaifusResponse,
 	GetMediaWaifusService,
 	KnowMediaResponse,
@@ -83,15 +84,21 @@ export class MediaService {
 
 	/**
 	 * Retrieve media titles that given userId has "known"
-	 * @param {User['id']} userId user uuid
+	 * @param {GetMediaTitlesService} dto user uuid
 	 * @returns {GetMediaTitlesResponse} media titles and id array
 	 */
-	async getMediaTitles(userId: User['id']): Promise<GetMediaTitlesResponse> {
+	async getMediaTitles(
+		dto: GetMediaTitlesService
+	): Promise<GetMediaTitlesResponse> {
 		const mediaTitles = await this.prisma.media.findMany({
 			where: {
 				knownBy: {
 					some: {
-						userId,
+						userId: {
+							in: dto.memberId
+								? [dto.userId, dto.memberId]
+								: [dto.userId],
+						},
 					},
 				},
 			},
