@@ -1,12 +1,6 @@
-import { KnownMedia, Media, MediaType, Prisma, User } from '@prisma/client';
-import { MyImage, RequestStatus } from '../common';
+import { KnownMedia, MediaType, Prisma, User } from '@prisma/client';
+import { MyImage } from '../common';
 import { GetMediaDto } from './get-media.dto';
-import {
-	GetEditMediaResponse,
-	GetMediaTitlesResponse,
-	GetMediaWaifusResponse,
-	MediaResponse,
-} from './media.response';
 
 export * from './create-media.dto';
 export * from './delete-media.dto';
@@ -24,27 +18,8 @@ export type MediaKnownUser = KnownMedia & {
 
 export interface MediaState {
 	get: {
-		data: MediaResponse[];
-		totalMedias: number;
 		appliedFilters: GetMediaDto;
-	} & RequestStatus;
-	add: RequestStatus;
-	know: RequestStatus;
-	edit: {
-		data: GetEditMediaResponse;
-		local: RequestStatus;
-		server: RequestStatus;
-	} & RequestStatus;
-	delete: {
-		mediaId: Media['id'];
-	} & RequestStatus;
-	titles: {
-		data: GetMediaTitlesResponse;
-	} & RequestStatus;
-	mediaWaifus: {
-		id: Media['id'];
-		data: GetMediaWaifusResponse;
-	} & RequestStatus;
+	};
 }
 
 export interface MediaLabel {

@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import {
 	Button,
 	FormControl,
@@ -8,36 +9,49 @@ import {
 	Select,
 	VStack,
 } from '@chakra-ui/react';
-import { CreateWaifuDto } from '@wia-nx/types';
-import { useRouter } from 'next/router';
-import { ChangeEvent, useState } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectAddWaifu } from '@wia-client/src/store/waifu';
-import { addWaifuAction } from '@wia-client/src/store/waifu/actions';
+import {
+	selectAuth,
+	useAppSelector,
+	useGetMediaTitlesQuery,
+	useAddWaifuMutation,
+} from '@wia-client/src/store';
+import {
+	formatImageFileName,
+	parseMediaId,
+	parseRTKError,
+	useImage,
+} from '@wia-client/src/utils';
+import { CreateWaifuDto } from '@wia-nx/types';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
 import WaifuLevelOptions from '@wia-client/src/components/common/WaifuLevelOptions';
 import WaifuMediaTitleOptions from '@wia-client/src/components/common/WaifuMediaTitleOptions';
-import { SubmitHandler, useForm } from 'react-hook-form';
-import { formatImageFileName, loadImage } from '@wia-client/src/utils';
-import ImageCard from '@wia-client/src/components/common/ImageCard';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
 
-function AddWaifu() {
-	// redux hooks
-	const dispatch = useAppDispatch();
-	const addWaifuStatus = useAppSelector(selectAddWaifu);
-
+export default function AddWaifu() {
 	// next hooks
 	const router = useRouter();
-	const mediaId = router.query.mediaId;
+	const mediaId = parseMediaId(router.query.mediaId);
 
-	// react hooks
-	const [currentImage, setCurrentImage] = useState<string>('');
-	const [imageFile, setImageFile] = useState<File>();
+	// rtk hooks
+	const { isLoggedIn } = useAppSelector(selectAuth);
+	const mediaTitlesQuery = useGetMediaTitlesQuery({}, { skip: !isLoggedIn });
+	const [addWaifu, addWaifuState] = useAddWaifuMutation();
 
-	// react hook form
+	// custom hooks
+	const {
+		currentImage,
+		imageFile,
+		handleImageChange,
+		imageFormat,
+		resetImage,
+	} = useImage();
+
+	// react-hook-form
 	const {
 		register,
 		handleSubmit,
@@ -46,14 +60,14 @@ function AddWaifu() {
 		formState: { errors, isDirty },
 	} = useForm<CreateWaifuDto>({
 		defaultValues: {
-			mediaId: typeof mediaId === 'string' ? mediaId : '',
+			mediaId,
 			name: '',
 			level: 'genin',
 		},
 	});
 
-	// functions
-	const onSubmit: SubmitHandler<CreateWaifuDto> = async (data) => {
+	// std functions
+	const onSubmit: SubmitHandler<CreateWaifuDto> = (data) => {
 		console.log('submitting create waifu');
 		const newValues: CreateWaifuDto = {
 			...data,
@@ -69,52 +83,41 @@ function AddWaifu() {
 			const sendImage = new File([imageFile], completeFileName, {
 				type: imageFile.type,
 			});
-			const res = await dispatch(
-				addWaifuAction({
-					waifuDto: newValues,
-					imageFile: sendImage,
-				})
-			);
-			if (res.meta.requestStatus === 'fulfilled') {
-				if (typeof mediaId === 'string') {
-					router.push({
-						pathname: '/media/waifus',
-						query: {
-							mediaId,
-						},
-					});
-				} else router.push('/waifus');
-			}
+			addWaifu({
+				waifuDto: newValues,
+				imageFile: sendImage,
+			});
 		} else {
 			const { imageFormat, ...rest } = newValues;
-			const res = await dispatch(
-				addWaifuAction({
-					waifuDto: rest,
-				})
-			);
-			if (res.meta.requestStatus === 'fulfilled') {
-				// Pending: checar con oscar, si regresar al anime
-				// en el que estaba, o regresar a home, o waifus, etc
-				if (typeof mediaId === 'string') {
-					router.push({
-						pathname: '/media/waifus',
-						query: {
-							mediaId,
-						},
-					});
-				} else router.push('/waifus');
-			}
+			addWaifu({ waifuDto: rest });
 		}
 	};
 
-	const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-		const res = await loadImage(event.currentTarget.files);
-		setCurrentImage(res.result);
-		setImageFile(res.image);
-		setValue('imageFormat', res.format, { shouldDirty: true });
-	};
+	// effects
+	useEffect(() => {
+		// Pending: checar con oscar, si regresar al anime
+		// en el que estaba, o regresar a home, o waifus, etc
+		if (addWaifuState.isSuccess && router.isReady) {
+			if (mediaId === '') {
+				router.push('/waifus');
+			} else
+				router.push({
+					pathname: '/media/waifus',
+					query: {
+						mediaId,
+					},
+				});
+		}
+	}, [addWaifuState, router, mediaId]);
 
-	// render
+	useEffect(() => {
+		if (typeof imageFormat !== 'undefined') {
+			setValue('imageFormat', imageFormat, { shouldDirty: true });
+		}
+	}, [imageFormat, setValue]);
+
+	if (!isLoggedIn || !mediaTitlesQuery.isSuccess) return <></>;
+
 	return (
 		<ProtectedPage originalUrl='/waifus/add'>
 			<VStack w='full' spacing={4}>
@@ -122,7 +125,11 @@ function AddWaifu() {
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<VStack spacing={4}>
 						<FormErrorMessageWrapper
-							error={addWaifuStatus.error?.message}
+							error={
+								addWaifuState.isError
+									? parseRTKError(addWaifuState.error)
+									: undefined
+							}
 						/>
 						<FormControl isInvalid={Boolean(errors.name)}>
 							<FormLabel htmlFor='name'>name</FormLabel>
@@ -164,28 +171,13 @@ function AddWaifu() {
 							</FormErrorMessage>
 						</FormControl>
 
-						{currentImage && (
-							<ImageCard
-								image={{ src: currentImage }}
-								imageName={watch('name')}
-								type='waifu'
-								local
-							/>
-						)}
-
-						<FormControl>
-							<FormLabel htmlFor='image'>image</FormLabel>
-							<Input
-								id='image'
-								name='image'
-								type='file'
-								variant='filled'
-								accept='image/*'
-								onChange={handleImageChange}
-								py='2'
-								height='auto'
-							/>
-						</FormControl>
+						<ImageInput
+							currentImage={currentImage}
+							imageName={watch('name')}
+							handleImageChange={handleImageChange}
+							handleImageReset={resetImage}
+							isLocal
+						/>
 
 						<HStack>
 							<Button
@@ -199,7 +191,7 @@ function AddWaifu() {
 							<Button
 								type='submit'
 								disabled={!isDirty}
-								isLoading={addWaifuStatus.status === 'loading'}
+								isLoading={addWaifuState.isLoading}
 								colorScheme={isDirty ? 'green' : 'gray'}
 							>
 								add my waifu
@@ -211,5 +203,3 @@ function AddWaifu() {
 		</ProtectedPage>
 	);
 }
-
-export default AddWaifu;

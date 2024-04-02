@@ -1,16 +1,21 @@
+import { selectAuth } from '@wia-client/src/store/auth';
 import { useAppSelector } from '@wia-client/src/store/hooks';
-import { selectMediaTitles } from '@wia-client/src/store/media';
+import { useGetMediaTitlesQuery } from '@wia-client/src/store/media';
 
 function WaifuMediaTitleOptions() {
-	const { data: mediaTitles } = useAppSelector(selectMediaTitles);
-	return (
-		<>
-			{mediaTitles.map((media) => (
-				<option key={media.id} value={media.id}>
-					{media.title}
-				</option>
-			))}
-		</>
+	// rtk hooks
+	const { isLoggedIn } = useAppSelector(selectAuth);
+	const mediaTitlesQuery = useGetMediaTitlesQuery({}, { skip: !isLoggedIn });
+
+	//render
+	return mediaTitlesQuery.isSuccess ? (
+		mediaTitlesQuery.data.map((media) => (
+			<option key={media.id} value={media.id}>
+				{media.title}
+			</option>
+		))
+	) : (
+		<></>
 	);
 }
 

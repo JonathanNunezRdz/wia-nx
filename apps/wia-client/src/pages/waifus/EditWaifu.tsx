@@ -1,63 +1,71 @@
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import {
 	Button,
-	HStack,
-	VStack,
 	FormControl,
-	FormLabel,
-	Input,
 	FormErrorMessage,
+	FormLabel,
+	HStack,
+	Input,
 	Select,
+	VStack,
 } from '@chakra-ui/react';
+
+import {
+	useAppSelector,
+	selectAuth,
+	useEditWaifuMutation,
+	useGetEditWaifuQuery,
+} from '@wia-client/src/store';
+import {
+	formatImageFileName,
+	parseRTKError,
+	parseWaifuId,
+	useImage,
+} from '@wia-client/src/utils';
 import { EditWaifuDto } from '@wia-nx/types';
-import { useRouter } from 'next/router';
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectEditWaifu } from '@wia-client/src/store/waifu';
-import { ChangeEvent, useEffect, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
-import { formatImageFileName, loadImage } from '@wia-client/src/utils';
-import { editWaifuAction } from '@wia-client/src/store/waifu/actions';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
 import WaifuLevelOptions from '@wia-client/src/components/common/WaifuLevelOptions';
 import WaifuMediaTitleOptions from '@wia-client/src/components/common/WaifuMediaTitleOptions';
-import ImageCard from '@wia-client/src/components/common/ImageCard';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
 
-function EditWaifu() {
-	// redux hooks
-	const dispatch = useAppDispatch();
-	const {
-		data: waifuToEdit,
-		status,
-		error,
-	} = useAppSelector(selectEditWaifu);
-
+const EditWaifu = () => {
 	// next hooks
 	const router = useRouter();
+	const waifuId = parseWaifuId(router.query.waifuIdString);
 
-	// react hooks
-	const [currentImage, setCurrentImage] = useState<string>('');
-	const [imageFile, setImageFile] = useState<File>();
+	// redux hooks
+	const { isLoggedIn } = useAppSelector(selectAuth);
+	const waifuQuery = useGetEditWaifuQuery(waifuId, {
+		skip: !isLoggedIn || !router.isReady || waifuId === '',
+	});
+	const [editWaifu, editWaifuState] = useEditWaifuMutation();
 
-	// react hook form
+	// custom hooks
+	const {
+		currentImage,
+		handleImageChange,
+		imageFile,
+		imageFormat,
+		resetImage,
+	} = useImage();
+
+	// react-hook-form
 	const {
 		register,
 		handleSubmit,
 		setValue,
 		watch,
 		formState: { isDirty, errors },
-	} = useForm<EditWaifuDto>({
-		defaultValues: {
-			mediaId: waifuToEdit.mediaId,
-			waifuId: waifuToEdit.id,
-			name: waifuToEdit.name,
-			level: waifuToEdit.level,
-		},
-	});
+	} = useForm<EditWaifuDto>();
 
-	// functions
-	const onSubmit: SubmitHandler<EditWaifuDto> = async (data) => {
+	// std function
+	const onSubmit: SubmitHandler<EditWaifuDto> = (data) => {
 		console.log('submitting edit waifu');
+		if (!waifuQuery.isSuccess) return;
 
 		const newValues: EditWaifuDto = {
 			...data,
@@ -67,48 +75,59 @@ function EditWaifu() {
 		if (imageFile) {
 			const format = imageFile.type.split('/').pop();
 			const completeFileName = formatImageFileName(
-				newValues.name || waifuToEdit.name,
+				newValues.name || waifuQuery.data.name,
 				format
 			);
 			const sendImage = new File([imageFile], completeFileName, {
 				type: imageFile.type,
 			});
-			const res = await dispatch(
-				editWaifuAction({ editDto: newValues, imageFile: sendImage })
-			);
-			if (res.meta.requestStatus === 'fulfilled') router.push('/waifus');
+			editWaifu({ editDto: newValues, imageFile: sendImage });
 		} else {
 			const { imageFormat, ...rest } = newValues;
-			const res = await dispatch(
-				editWaifuAction({
-					editDto: rest,
-				})
-			);
-			if (res.meta.requestStatus === 'fulfilled') router.push('/waifus');
+			editWaifu({
+				editDto: rest,
+			});
 		}
 	};
 
-	const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-		const res = await loadImage(event.currentTarget.files);
-		setCurrentImage(res.result);
-		setImageFile(res.image);
-		setValue('imageFormat', res.format, { shouldDirty: true });
-	};
+	// effects
+	useEffect(() => {
+		if (waifuQuery.isSuccess) {
+			const { data: waifuToEdit } = waifuQuery;
+			setValue('mediaId', waifuToEdit.mediaId, { shouldDirty: false });
+			setValue('name', waifuToEdit.name, { shouldDirty: false });
+			setValue('level', waifuToEdit.level, { shouldDirty: false });
+		}
+	}, [waifuQuery, setValue]);
 
 	useEffect(() => {
-		if (waifuToEdit.image && typeof imageFile === 'undefined') {
-			setCurrentImage(waifuToEdit.image.src);
+		if (editWaifuState.isSuccess && router.isReady) {
+			router.push('/waifus');
 		}
-	}, [waifuToEdit.image, imageFile]);
+	}, [editWaifuState, router]);
+
+	useEffect(() => {
+		if (typeof imageFormat !== 'undefined') {
+			setValue('imageFormat', imageFormat, { shouldDirty: true });
+		}
+	}, [imageFormat, setValue]);
 
 	// render
+	if (!waifuQuery.isSuccess) return <></>;
 	return (
 		<ProtectedPage originalUrl='/waifus/edit'>
 			<VStack w='full' spacing={4}>
 				<PageTitle title='edit waifu' />
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<VStack spacing={4}>
-						<FormErrorMessageWrapper error={error?.message} />
+						<FormErrorMessageWrapper
+							error={
+								editWaifuState.isError
+									? parseRTKError(editWaifuState.error)
+									: undefined
+							}
+						/>
+
 						<FormControl isInvalid={Boolean(errors.name)}>
 							<FormLabel htmlFor='name'>name</FormLabel>
 							<Input
@@ -149,28 +168,15 @@ function EditWaifu() {
 							</FormErrorMessage>
 						</FormControl>
 
-						{currentImage && (
-							<ImageCard
-								image={{ src: currentImage }}
-								imageName={watch('name') || waifuToEdit.name}
-								type='waifu'
-								local={currentImage !== waifuToEdit.image?.src}
-							/>
-						)}
-
-						<FormControl>
-							<FormLabel htmlFor='image'>image</FormLabel>
-							<Input
-								id='image'
-								name='image'
-								type='file'
-								variant='filled'
-								accept='image/*'
-								onChange={handleImageChange}
-								py='2'
-								height='auto'
-							/>
-						</FormControl>
+						<ImageInput
+							currentImage={currentImage}
+							imageName={watch('name') || waifuQuery.data.name}
+							handleImageChange={handleImageChange}
+							handleImageReset={resetImage}
+							isLocal={
+								currentImage !== waifuQuery.data.image?.src
+							}
+						/>
 
 						<HStack>
 							<Button
@@ -183,7 +189,7 @@ function EditWaifu() {
 							<Button
 								type='submit'
 								disabled={!isDirty}
-								isLoading={status === 'loading'}
+								isLoading={editWaifuState.isLoading}
 								colorScheme={isDirty ? 'green' : 'gray'}
 							>
 								confirm
@@ -194,6 +200,6 @@ function EditWaifu() {
 			</VStack>
 		</ProtectedPage>
 	);
-}
+};
 
 export default EditWaifu;

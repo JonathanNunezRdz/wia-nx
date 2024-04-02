@@ -5,13 +5,12 @@ import {
 	FormLabel,
 	SimpleGrid,
 } from '@chakra-ui/react';
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectAllUsers, selectUser } from '@wia-client/src/store/user';
-import { getAllUsersAction } from '@wia-client/src/store/user/actions';
-import { useEffect } from 'react';
+import { useAppSelector } from '@wia-client/src/store/hooks';
 import { Control, Controller } from 'react-hook-form';
 
 import Loading from './Loading';
+import { useGetMeQuery, useGetMembersQuery } from '@wia-client/src/store/user';
+import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 
 interface FilterUsersInputProps {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,41 +19,49 @@ interface FilterUsersInputProps {
 
 const FilterUsersInput = ({ control }: FilterUsersInputProps) => {
 	// reducers
-	const dispatch = useAppDispatch();
-	const { data: members, status } = useAppSelector(selectAllUsers);
-	const { data: user } = useAppSelector(selectUser);
+	const { isLoggedIn } = useAppSelector(selectAuth);
+	const {
+		data: user,
+		isFetching: userFetching,
+		isSuccess: userSuccess,
+	} = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const {
+		data: members,
+		isFetching: membersFetching,
+		isSuccess: membersSuccess,
+	} = useGetMembersQuery();
 
 	// effects
-	useEffect(() => {
-		if (status === 'idle') dispatch(getAllUsersAction());
-	}, [status, dispatch]);
 
-	if (status === 'loading') return <Loading />;
+	if (userFetching || membersFetching) return <Loading />;
 
 	return (
 		<FormControl>
 			<FormLabel htmlFor='users'>users</FormLabel>
 			<CheckboxGroup>
-				<SimpleGrid columns={{ sm: 2 }} spacing='4'>
-					{members.map((member) => (
-						<Controller
-							key={member.id}
-							control={control}
-							name={member.id}
-							defaultValue={false}
-							render={({ field: { onChange, value, ref } }) => (
-								<Checkbox
-									onChange={onChange}
-									ref={ref}
-									isChecked={value}
-								>
-									{user && user.id === member.id
-										? 'me'
-										: member.alias}
-								</Checkbox>
-							)}
-						/>
-					))}
+				<SimpleGrid columns={{ sm: 2 }} spacing={4}>
+					{membersSuccess &&
+						members.map((member) => (
+							<Controller
+								key={member.id}
+								control={control}
+								name={member.id}
+								defaultValue={false}
+								render={({
+									field: { onChange, value, ref },
+								}) => (
+									<Checkbox
+										onChange={onChange}
+										ref={ref}
+										isChecked={value}
+									>
+										{userSuccess && user.id === member.id
+											? 'me'
+											: member.alias}
+									</Checkbox>
+								)}
+							/>
+						))}
 				</SimpleGrid>
 			</CheckboxGroup>
 		</FormControl>

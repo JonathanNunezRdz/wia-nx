@@ -1,3 +1,5 @@
+import type { ChangeEvent } from 'react';
+
 export type Status = 'idle' | 'loading' | 'succeeded' | 'failed';
 
 export type CommonError = string | string[] | undefined;
@@ -34,3 +36,7 @@ export type JWTStatus = ValidJWT | InvalidJWT;
 export type MyImage = {
 	src: string;
 };
+
+export type ChangeImageHandler = (
+	event: ChangeEvent<HTMLInputElement>
+) => Promise<void>;

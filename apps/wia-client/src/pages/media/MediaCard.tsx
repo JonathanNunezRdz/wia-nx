@@ -6,19 +6,15 @@ import {
 	List,
 	Button,
 	VStack,
-	Center,
 } from '@chakra-ui/react';
-import { MediaResponse } from '@wia-nx/types';
 import { User } from '@prisma/client';
 import { Link } from '@chakra-ui/next-js';
 
+import { MediaResponse } from '@wia-nx/types';
+import { useCardColor } from '@wia-client/src/utils';
+import ImageCard from '@wia-client/src/components/common/ImageCard';
 import MediaActionButtons from './MediaActionButtons';
 import KnownBy from './KnownBy';
-import { useCardColor } from '@wia-client/src/utils/constants';
-import ImageCard from '@wia-client/src/components/common/ImageCard';
-import { useAppSelector } from '@wia-client/src/store/hooks';
-import Loading from '@wia-client/src/components/common/Loading';
-import { selectDeleteMedia } from '@wia-client/src/store/media';
 
 interface MediaCardProps {
 	media: MediaResponse;
@@ -28,7 +24,7 @@ interface MediaCardProps {
 
 const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 	// rtk hooks
-	const deleteStatus = useAppSelector(selectDeleteMedia);
+	// const deleteStatus = useAppSelector(selectDeleteMedia);
 
 	// chakra hooks
 	const bg = useCardColor();
@@ -37,40 +33,19 @@ const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 	const isKnownByMe =
 		media.knownBy.findIndex((user) => user.userId === ownId) !== -1;
 	const hasWaifus = media.waifus.length > 0;
-	const isDeleting =
-		deleteStatus.status === 'loading' && deleteStatus.mediaId === media.id;
 	const hasImage = Boolean(media.image);
 
 	// render
 	return (
 		<Box bg={bg} borderRadius='md' p='4' position='relative'>
-			{isDeleting && (
-				<Box
-					borderRadius='md'
-					bg='rgba(0,0,0,0.5)'
-					height='100%'
-					width='100%'
-					position='absolute'
-					top='0'
-					left='0'
-					zIndex={2}
-				>
-					<Center height='100%'>
-						<Loading />
-					</Center>
-				</Box>
-			)}
-			<ImageCard
-				image={media.image}
-				type={media.type}
-				imageName={media.title}
-			/>
+			{/* show a loading indicator if this media is being deleted */}
+			<ImageCard image={media.image} imageName={media.title} />
 			<Box
 				bg='teal.600'
 				borderRadius='md'
-				p='2'
-				mb='4'
-				mt={hasImage ? '4' : undefined}
+				p={2}
+				mb={4}
+				mt={hasImage ? 4 : undefined}
 			>
 				<HStack justifyContent='space-between'>
 					<Text fontSize='sm' fontWeight='medium'>
@@ -92,7 +67,7 @@ const MediaCard = ({ media, ownId, isLoggedIn }: MediaCardProps) => {
 				</Text>
 				<KnownBy users={media.knownBy} ownId={ownId} />
 			</Box>
-			<Box bg='teal.600' borderRadius='md' p='2'>
+			<Box bg='teal.600' borderRadius='md' p={2}>
 				<VStack alignItems='start'>
 					<Box>
 						<List>

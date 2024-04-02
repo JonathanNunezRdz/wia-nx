@@ -79,6 +79,8 @@ export class WaifuService {
 
 		if (!rawWaifu) throw new NotFoundException('waifu not found');
 
+		// TODO: check if waifu is owned by user
+
 		let image: GetEditWaifuResponse['image'];
 
 		if (rawWaifu.image) {

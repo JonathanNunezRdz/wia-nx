@@ -1,74 +1,95 @@
 import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
-import { useCallback, useEffect } from 'react';
-import { usePagination } from '../../components/pagination';
-import { GetMediaDto } from '@wia-nx/types';
+import { useCallback, useMemo } from 'react';
 
-import MediaCard from './MediaCard';
-import MediaFilterOptions from './MediaFilterOptions';
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectAuth, selectUser } from '@wia-client/src/store/user';
-import { selectMedia } from '@wia-client/src/store/media';
-import { getMediasAction } from '@wia-client/src/store/media/actions';
+import { GetMediaDto, HttpError } from '@wia-nx/types';
+import {
+	useAppDispatch,
+	useAppSelector,
+	selectAuth,
+	useGetMeQuery,
+	changeMediaPage,
+	selectMediaFilter,
+	useGetMediaQuery,
+} from '@wia-client/src/store';
 import Body from '@wia-client/src/components/layout/Body';
 import LinkButton from '@wia-client/src/components/common/LinkButton';
 import CustomPagination from '@wia-client/src/components/common/CustomPagination';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
+import Loading from '@wia-client/src/components/common/Loading';
+import MediaCard from './MediaCard';
+import MediaFilterOptions from './MediaFilterOptions';
 
 function Media() {
 	// rtk hooks
 	const dispatch = useAppDispatch();
-	const { data: user } = useAppSelector(selectUser);
-	const {
-		totalMedias,
-		appliedFilters,
-		status,
-		data: media,
-	} = useAppSelector(selectMedia);
 	const { isLoggedIn } = useAppSelector(selectAuth);
-
-	// use-pagination
-	const { pages, pagesCount, currentPage, isDisabled, setCurrentPage } =
-		usePagination({
-			total: totalMedias,
-			limits: {
-				outer: 2,
-				inner: 2,
-			},
-			initialState: {
-				pageSize: 9,
-				isDisabled: false,
-				currentPage: appliedFilters.page,
-			},
-		});
+	const appliedFilters = useAppSelector(selectMediaFilter);
+	const user = useGetMeQuery(undefined, {
+		skip: !isLoggedIn,
+	});
+	const mediaQuery = useGetMediaQuery(appliedFilters);
 
 	// custom functions
 	const handleGetMedia = useCallback(
 		(options: GetMediaDto) => {
-			setCurrentPage(options.page);
-			dispatch(getMediasAction(options));
+			dispatch(changeMediaPage(options.page));
 		},
-		[dispatch, setCurrentPage]
+		[dispatch]
 	);
-	const handleChangePage = (nextPage: number) => {
-		if (nextPage === appliedFilters.page) return;
-		if (nextPage < 1) return;
-		if (nextPage > pagesCount) return;
-		setCurrentPage(nextPage);
-		handleGetMedia({ ...appliedFilters, page: nextPage });
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	};
 
 	// effects
-	useEffect(() => {
-		handleGetMedia(appliedFilters);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [handleGetMedia]);
+
+	// sub components
+	const mainContent = useMemo(() => {
+		if (mediaQuery.isFetching) return <Loading />;
+		if (mediaQuery.isSuccess) {
+			if (mediaQuery.data.medias.length > 0)
+				return mediaQuery.data.medias.map((elem) => (
+					<MediaCard
+						key={elem.id}
+						media={elem}
+						ownId={user.isSuccess ? user.data.id : ''}
+						isLoggedIn={isLoggedIn}
+					/>
+				));
+			return (
+				<Box>
+					<Text>no media has been added to the wia</Text>
+				</Box>
+			);
+		}
+		if (mediaQuery.isError) {
+			if ('status' in mediaQuery.error) {
+				const { status } = mediaQuery.error;
+				if (status === 'FETCH_ERROR')
+					return (
+						<Box>
+							<Text>an error has ocurred, try again later</Text>
+						</Box>
+					);
+				const parsedError = mediaQuery.error.data as HttpError;
+				return (
+					<Box>
+						<Text>
+							{typeof parsedError.message === 'string'
+								? parsedError.message
+								: parsedError.message.reduce(
+										(prev, curr) => `${prev}${curr}\n`,
+										''
+								  )}
+						</Text>
+					</Box>
+				);
+			}
+		}
+		return <></>;
+	}, [mediaQuery, user, isLoggedIn]);
 
 	// render
 	return (
 		<Body h>
-			<VStack w='full' spacing='4'>
+			<VStack w='full' spacing={4}>
 				<PageTitle title='media'>
 					{isLoggedIn && (
 						<LinkButton
@@ -88,7 +109,7 @@ function Media() {
 							size='sm'
 							mt={1}
 							onClick={() => handleGetMedia(appliedFilters)}
-							isLoading={status === 'loading'}
+							isLoading={mediaQuery.isFetching}
 						/>
 					</Box>
 				</PageTitle>
@@ -97,38 +118,23 @@ function Media() {
 				</Box>
 
 				<CustomPagination
-					pages={pages}
-					pagesCount={pagesCount}
-					currentPage={currentPage}
-					isDisabled={isDisabled}
-					onPageChange={handleChangePage}
+					key='media'
+					totalItems={mediaQuery.data?.totalMedias || 0}
+					handleGetData={handleGetMedia}
+					filters={appliedFilters}
 				/>
 
 				<Box w='full'>
-					<SimpleGrid columns={{ sm: 2, md: 3 }} spacing='4'>
-						{media.length > 0 ? (
-							media.map((element) => (
-								<MediaCard
-									key={element.id}
-									media={element}
-									ownId={user.id}
-									isLoggedIn={isLoggedIn}
-								/>
-							))
-						) : (
-							<Box>
-								<Text>no media has been added to the wia</Text>
-							</Box>
-						)}
+					<SimpleGrid columns={{ sm: 2, md: 3 }} spacing={4}>
+						{mainContent}
 					</SimpleGrid>
 				</Box>
 
 				<CustomPagination
-					pages={pages}
-					pagesCount={pagesCount}
-					currentPage={currentPage}
-					isDisabled={isDisabled}
-					onPageChange={handleChangePage}
+					key='media'
+					totalItems={mediaQuery.data?.totalMedias || 0}
+					handleGetData={handleGetMedia}
+					filters={appliedFilters}
 				/>
 			</VStack>
 		</Body>

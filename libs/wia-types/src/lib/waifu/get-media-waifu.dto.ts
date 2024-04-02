@@ -24,3 +24,5 @@ export interface GetMediaWaifusService {
 	id: Media['id'];
 	waifuDto: GetMediaWaifusDto;
 }
+
+export type GetMediaWaifusThunk = GetMediaWaifusService;

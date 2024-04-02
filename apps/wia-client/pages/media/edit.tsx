@@ -1,3 +1,3 @@
-import EditMediaWrapper from '../../src/pages/media/EditMediaWrapper';
+import EditMedia from '@wia-client/src/pages/media/EditMedia';
 
-export default EditMediaWrapper;
+export default EditMedia;

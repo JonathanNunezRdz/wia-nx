@@ -12,41 +12,55 @@ import {
 	ModalOverlay,
 	useDisclosure,
 } from '@chakra-ui/react';
-import LinkButton from '@wia-client/src/components/common/LinkButton';
-import { useAppDispatch } from '@wia-client/src/store/hooks';
-import { deleteWaifuAction } from '@wia-client/src/store/waifu/actions';
 import { Waifu } from '@prisma/client';
 import { useRouter } from 'next/router';
+import { Dispatch, SetStateAction, useEffect } from 'react';
+
+import { useDeleteWaifuMutation } from '@wia-client/src/store';
+import LinkButton from '@wia-client/src/components/common/LinkButton';
 
 interface WaifuActionButtonsProps {
 	isLoggedIn: boolean;
 	waifuIsOwn: boolean;
 	waifuId: Waifu['id'];
+	setIsDeleting: Dispatch<SetStateAction<boolean>>;
 }
 
 function WaifuActionButtons({
 	isLoggedIn,
 	waifuId,
 	waifuIsOwn,
+	setIsDeleting,
 }: WaifuActionButtonsProps) {
-	// rtk hooks
-	const dispatch = useAppDispatch();
-
 	// next hooks
 	const router = useRouter();
+
+	// rtk hooks
+	const [deleteWaifu, deleteWaifuState] = useDeleteWaifuMutation();
 
 	// chakra hooks
 	const { isOpen, onOpen, onClose } = useDisclosure();
 
 	// functions
 	const handleDeleteWaifu = async () => {
-		const from = (): Parameters<typeof deleteWaifuAction>[0]['from'] => {
-			if (router.pathname === '/waifus') return '/waifus';
-			if (router.pathname === '/media/waifus') return '/media/waifus';
-			throw new Error('delete waifu from illegal place');
-		};
-		dispatch(deleteWaifuAction({ waifuId, from: from() }));
+		if (
+			router.pathname === '/waifus' ||
+			router.pathname === '/media/waifus'
+		) {
+			deleteWaifu(waifuId);
+		}
+		// PENDING: check if waifu card (this card) disappears after deleting action
 	};
+
+	// effects
+	useEffect(() => {
+		if (deleteWaifuState.isLoading) {
+			setIsDeleting(true);
+		}
+		if (deleteWaifuState.isSuccess || deleteWaifuState.isError) {
+			setIsDeleting(false);
+		}
+	}, [deleteWaifuState, setIsDeleting]);
 
 	// render
 	if (isLoggedIn && waifuIsOwn)
@@ -77,7 +91,7 @@ function WaifuActionButtons({
 					<ModalContent>
 						<ModalHeader>careful!</ModalHeader>
 						<ModalCloseButton />
-						<ModalBody>
+						<ModalBody py={4}>
 							are you sure you want to delete this waifu? this
 							can&apos;t be undone.
 						</ModalBody>
@@ -97,7 +111,7 @@ function WaifuActionButtons({
 				</Modal>
 			</Box>
 		);
-	return null;
+	return <></>;
 }
 
 export default WaifuActionButtons;

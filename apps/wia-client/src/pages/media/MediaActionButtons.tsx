@@ -1,11 +1,10 @@
 import { AddIcon, CheckIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { Box, IconButton } from '@chakra-ui/react';
-import LinkButton from '@wia-client/src/components/common/LinkButton';
-import { useAppDispatch } from '@wia-client/src/store/hooks';
-
-import { deleteMediaAction } from '@wia-client/src/store/media/actions';
 import { MediaType } from '@prisma/client';
 import { useRouter } from 'next/router';
+
+import { useDeleteMediaMutation } from '@wia-client/src/store/media';
+import LinkButton from '@wia-client/src/components/common/LinkButton';
 
 interface KnowQuery {
 	knownByMe: false;
@@ -26,7 +25,7 @@ interface MediaActionButtonsProps {
 
 function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 	// rtk hooks
-	const dispatch = useAppDispatch();
+	const [deleteMedia] = useDeleteMediaMutation();
 
 	// next hooks
 	const router = useRouter();
@@ -35,14 +34,10 @@ function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 
 	// functions
 	const handleDeleteMedia = async () => {
-		const from = (): Parameters<typeof deleteMediaAction>[0]['from'] => {
-			if (router.pathname === '/media') return '/media';
-			if (router.pathname === '/media/waifus') return '/media/waifus';
-			throw new Error('delete media from illegal place');
-		};
-		dispatch(
-			deleteMediaAction({ mediaId: query.mediaIdString, from: from() })
-		);
+		if (router.pathname === '/media' || router.pathname === '/media/waifus')
+			deleteMedia(query.mediaIdString);
+
+		throw new Error('delete media from illegal place');
 	};
 
 	// render
@@ -88,24 +83,23 @@ function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 				/>
 			</Box>
 		);
-	if (query.knownByMe === false)
-		return (
-			<LinkButton
-				pathname='/media/know'
-				query={{
-					mediaIdString: query.mediaIdString,
-					mediaTitle: query.mediaTitle,
-					mediaTypeString: query.mediaTypeString,
-				}}
-				iconButtonProps={{
-					'aria-label': 'finished it',
-					icon: <CheckIcon />,
-					size: 'xs',
-					colorScheme: 'green',
-				}}
-			/>
-		);
-	return <></>;
+
+	return (
+		<LinkButton
+			pathname='/media/know'
+			query={{
+				mediaIdString: query.mediaIdString,
+				mediaTitle: query.mediaTitle,
+				mediaTypeString: query.mediaTypeString,
+			}}
+			iconButtonProps={{
+				'aria-label': 'finished it',
+				icon: <CheckIcon />,
+				size: 'xs',
+				colorScheme: 'green',
+			}}
+		/>
+	);
 }
 
 export default MediaActionButtons;

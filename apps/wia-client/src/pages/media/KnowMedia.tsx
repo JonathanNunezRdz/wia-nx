@@ -7,28 +7,27 @@ import {
 	Text,
 	HStack,
 } from '@chakra-ui/react';
-import { KnowMediaDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
-
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectKnowMedia } from '@wia-client/src/store/media';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+
+import { KnowMediaDto } from '@wia-nx/types';
+import { useKnowMediaMutation } from '@wia-client/src/store';
 import {
 	formatDate,
 	parseMediaId,
 	parseMediaType,
+	parseRTKError,
 	prepareDate,
+	mediaLabel,
 } from '@wia-client/src/utils';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
-import { knowMediaAction } from '@wia-client/src/store/media/actions';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
-import { mediaLabel } from '@wia-client/src/utils/constants';
 
 const KnowMedia = () => {
 	// redux hooks
-	const dispatch = useAppDispatch();
-	const { status, error } = useAppSelector(selectKnowMedia);
+	const [knowMedia, knowMediaState] = useKnowMediaMutation();
 
 	// next hooks
 	const router = useRouter();
@@ -48,16 +47,20 @@ const KnowMedia = () => {
 
 	// functions
 	const onSubmit: SubmitHandler<KnowMediaDto> = async (data) => {
-		console.log('submitting knowMediaDto');
-
+		console.log('knowning media');
 		const newValues = {
 			...data,
 			knownAt: prepareDate(data.knownAt),
 		};
-
-		const res = await dispatch(knowMediaAction(newValues));
-		if (res.meta.requestStatus === 'fulfilled') router.push('/media');
+		knowMedia(newValues);
 	};
+
+	// effects
+	useEffect(() => {
+		if (knowMediaState.isSuccess && router.isReady) {
+			router.push('/media');
+		}
+	}, [knowMediaState, router]);
 
 	// render
 	if (!mediaType) return null;
@@ -69,7 +72,13 @@ const KnowMedia = () => {
 				</PageTitle>
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<VStack spacing='4'>
-						<FormErrorMessageWrapper error={error?.message} />
+						<FormErrorMessageWrapper
+							error={
+								knowMediaState.isError
+									? parseRTKError(knowMediaState.error)
+									: undefined
+							}
+						/>
 
 						<FormControl>
 							<FormLabel htmlFor='knownAt'>
@@ -92,7 +101,7 @@ const KnowMedia = () => {
 
 							<Button
 								type='submit'
-								isLoading={status === 'loading'}
+								isLoading={knowMediaState.isLoading}
 								colorScheme='green'
 							>
 								know media

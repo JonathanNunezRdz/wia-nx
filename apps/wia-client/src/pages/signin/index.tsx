@@ -7,25 +7,25 @@ import {
 	Input,
 	VStack,
 } from '@chakra-ui/react';
-import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
-import Body from '@wia-client/src/components/layout/Body';
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { resetSignInStatus, selectSignIn } from '@wia-client/src/store/user';
-import { signInAction } from '@wia-client/src/store/user/actions';
-import { SignInDto } from '@wia-nx/types';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
 import { FC, useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-const SignIn: FC = () => {
-	// redux hooks
-	const dispatch = useAppDispatch();
-	const signInStatus = useAppSelector(selectSignIn);
+import { SignInDto } from '@wia-nx/types';
+import { useSignInMutation } from '@wia-client/src/store';
+import { parseRTKError } from '@wia-client/src/utils';
+import Body from '@wia-client/src/components/layout/Body';
+import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
 
+const SignIn: FC = () => {
 	// next hooks
 	const router = useRouter();
 
+	// rtk hooks
+	const [signIn, signInState] = useSignInMutation();
+
+	// react-hook-form
 	const {
 		register,
 		handleSubmit,
@@ -37,22 +37,21 @@ const SignIn: FC = () => {
 		},
 	});
 
+	// std functions
 	const onSubmit: SubmitHandler<SignInDto> = async (data) => {
-		const res = await dispatch(signInAction(data));
-		if (res.meta.requestStatus === 'fulfilled') {
-			if (router.query.redirect) {
-				router.push(router.query.redirect as string);
+		signIn(data);
+	};
+
+	// effects
+	useEffect(() => {
+		if (signInState.isSuccess && router.isReady) {
+			if (typeof router.query.redirect === 'string') {
+				router.push(router.query.redirect);
 			} else {
 				router.push('/');
 			}
 		}
-	};
-
-	useEffect(() => {
-		return () => {
-			dispatch(resetSignInStatus());
-		};
-	}, [dispatch]);
+	}, [signInState, router]);
 
 	return (
 		<Body v h>
@@ -60,7 +59,11 @@ const SignIn: FC = () => {
 			<form onSubmit={handleSubmit(onSubmit)} noValidate>
 				<VStack px='1.5rem' py='1rem' spacing={4}>
 					<FormErrorMessageWrapper
-						error={signInStatus.error?.message}
+						error={
+							signInState.isError
+								? parseRTKError(signInState.error)
+								: undefined
+						}
 					/>
 					<FormControl isInvalid={Boolean(errors.email)}>
 						<FormLabel>email address</FormLabel>
@@ -100,7 +103,7 @@ const SignIn: FC = () => {
 						<Button
 							type='submit'
 							isDisabled={!isDirty}
-							isLoading={signInStatus.status === 'loading'}
+							isLoading={signInState.isLoading}
 						>
 							sign in
 						</Button>

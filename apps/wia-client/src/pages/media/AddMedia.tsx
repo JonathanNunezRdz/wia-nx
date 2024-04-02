@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
 	Button,
 	HStack,
@@ -9,39 +9,45 @@ import {
 	FormErrorMessage,
 	Select,
 } from '@chakra-ui/react';
-import { CreateMediaDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
+
 import {
-	resetAddMediaStatus,
-	selectAddMedia,
-} from '@wia-client/src/store/media';
+	useAddMediaMutation,
+	useAppSelector,
+	selectAuth,
+} from '@wia-client/src/store';
+import { CreateMediaDto } from '@wia-nx/types';
 import {
 	formatDate,
 	formatImageFileName,
-	loadImage,
+	parseRTKError,
 	prepareDate,
+	useImage,
+	mediaLabel,
 } from '@wia-client/src/utils';
-import { addMediaAction } from '@wia-client/src/store/media/actions';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
 import MediaTypeOptions from '@wia-client/src/components/common/MediaTypeOptions';
-import { mediaLabel } from '@wia-client/src/utils/constants';
-import ImageCard from '@wia-client/src/components/common/ImageCard';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
 
 const AddMedia = () => {
-	// redux hooks
-	const dispatch = useAppDispatch();
-	const { status, error } = useAppSelector(selectAddMedia);
-
 	// next hooks
 	const router = useRouter();
 
-	// react hooks
-	const [currentImage, setCurrentImage] = useState<string>('');
-	const [imageFile, setImageFile] = useState<File>();
+	// rtk hooks
+	const { isLoggedIn } = useAppSelector(selectAuth);
+	const [addMedia, addMediaState] = useAddMediaMutation();
+
+	// custom hooks
+	const {
+		currentImage,
+		imageFile,
+		imageFormat,
+		handleImageChange,
+		resetImage,
+	} = useImage();
 
 	// react-hook-form
 	const {
@@ -61,7 +67,7 @@ const AddMedia = () => {
 
 	// functions
 	const onSubmit: SubmitHandler<CreateMediaDto> = async (data) => {
-		console.log('submitting');
+		console.log('adding media');
 
 		const newValues = {
 			...data,
@@ -78,37 +84,28 @@ const AddMedia = () => {
 			const sendImage = new File([imageFile], completeFileName, {
 				type: imageFile.type,
 			});
-			const res = await dispatch(
-				addMediaAction({
-					mediaDto: newValues,
-					imageFile: sendImage,
-				})
-			);
-			if (res.meta.requestStatus === 'fulfilled') router.push('/media');
+			addMedia({ mediaDto: newValues, imageFile: sendImage });
 		} else {
 			// remove imageFormat if undefined
 			const { imageFormat, ...rest } = newValues;
-			const res = await dispatch(
-				addMediaAction({
-					mediaDto: rest,
-				})
-			);
-			if (res.meta.requestStatus === 'fulfilled') router.push('/media');
+			addMedia({ mediaDto: rest });
 		}
 	};
 
-	const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-		const res = await loadImage(event.currentTarget.files);
-		setCurrentImage(res.result);
-		setImageFile(res.image);
-		setValue('imageFormat', res.format, { shouldDirty: true });
-	};
+	// effects
+	useEffect(() => {
+		if (addMediaState.isSuccess && router.isReady) {
+			router.push('/media');
+		}
+	}, [router, addMediaState.isSuccess]);
 
 	useEffect(() => {
-		return () => {
-			dispatch(resetAddMediaStatus());
-		};
-	}, [dispatch]);
+		if (typeof imageFormat !== 'undefined') {
+			setValue('imageFormat', imageFormat, { shouldDirty: false });
+		}
+	}, [imageFormat, setValue]);
+
+	if (!isLoggedIn) return <></>;
 
 	return (
 		<ProtectedPage originalUrl='/media/add'>
@@ -116,8 +113,14 @@ const AddMedia = () => {
 				<PageTitle title='add media' />
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<VStack spacing={4}>
-						<FormErrorMessageWrapper error={error?.message} />
-						<FormControl isInvalid={!!errors.title}>
+						<FormErrorMessageWrapper
+							error={
+								addMediaState.isError
+									? parseRTKError(addMediaState.error)
+									: undefined
+							}
+						/>
+						<FormControl isInvalid={Boolean(errors.title)}>
 							<FormLabel htmlFor='title'>title</FormLabel>
 							<Input
 								id='title'
@@ -150,27 +153,13 @@ const AddMedia = () => {
 							/>
 						</FormControl>
 
-						{currentImage && (
-							<ImageCard
-								image={{ src: currentImage }}
-								imageName={watch('title')}
-								type={watch('type')}
-								local
-							/>
-						)}
-						<FormControl>
-							<FormLabel htmlFor='image'>image</FormLabel>
-							<Input
-								id='image'
-								name='image'
-								type='file'
-								variant='filled'
-								accept='image/*'
-								onChange={handleImageChange}
-								py='2'
-								height='auto'
-							/>
-						</FormControl>
+						<ImageInput
+							currentImage={currentImage}
+							imageName={watch('title')}
+							handleImageChange={handleImageChange}
+							handleImageReset={resetImage}
+							isLocal
+						/>
 
 						<HStack>
 							<Button
@@ -183,7 +172,7 @@ const AddMedia = () => {
 							<Button
 								type='submit'
 								isDisabled={!isDirty}
-								isLoading={status === 'loading'}
+								isLoading={addMediaState.isLoading}
 								colorScheme={isDirty ? 'green' : 'gray'}
 							>
 								add media

@@ -1,9 +1,14 @@
 import { ImageFormat, MediaType, WaifuLevel } from '@prisma/client';
-import { HttpError, JWTPayload, JWTStatus } from '@wia-nx/types';
+import { SerializedError } from '@reduxjs/toolkit';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/dist/query';
+import { CommonError, HttpError, JWTPayload, JWTStatus } from '@wia-nx/types';
 import { AxiosError } from 'axios';
 import { StorageError, StorageErrorCode } from 'firebase/storage';
 import { stringify } from 'qs';
 import { ImageFormats, MediaTypes, WaifuLevelLabels } from './constants';
+
+export * from './constants';
+export * from './hooks';
 
 export function getJWTFromLocalStorage() {
 	if (typeof process.env.NEXT_PUBLIC_JWT_LOCAL_STORAGE_KEY === 'undefined') {
@@ -161,4 +166,20 @@ export function customParamsSerializer(params: Record<string, any>) {
 		encode: false,
 		arrayFormat: 'comma',
 	});
+}
+
+export function parseRTKError(
+	error: FetchBaseQueryError | SerializedError
+): CommonError {
+	if ('status' in error) {
+		const { status } = error;
+		if (status === 'FETCH_ERROR')
+			return 'an error has ocurred, try again later';
+		if (error.data) {
+			const parsedError = error.data as HttpError;
+			return parsedError.message;
+		}
+	} else {
+		return JSON.stringify(error);
+	}
 }

@@ -1,6 +1,5 @@
 import { Text } from '@chakra-ui/react';
 import {
-	IPaginationProps,
 	Pagination,
 	PaginationContainer,
 	PaginationNext,
@@ -8,25 +7,51 @@ import {
 	PaginationPageGroup,
 	PaginationPrevious,
 	PaginationSeparator,
+	usePagination,
 } from '../pagination';
 
-interface CustomPaginationProps extends IPaginationProps {
-	pages: number[];
-}
+type WithFilters = { page: number; limit: number };
 
-const CustomPagination = ({
-	pagesCount,
-	currentPage,
-	isDisabled,
-	onPageChange,
-	pages,
-}: CustomPaginationProps) => {
+type CustomPaginationProps<T extends WithFilters> = {
+	totalItems: number;
+	handleGetData: (args: T) => void;
+	filters: T;
+};
+
+function CustomPagination<T extends WithFilters>({
+	totalItems,
+	handleGetData,
+	filters,
+}: CustomPaginationProps<T>) {
+	// pagination hook
+	const { pages, pagesCount, currentPage, isDisabled, setCurrentPage } =
+		usePagination({
+			total: totalItems,
+			limits: {
+				inner: 2,
+				outer: 2,
+			},
+			initialState: {
+				pageSize: filters.limit,
+				isDisabled: false,
+				currentPage: filters.page,
+			},
+		});
+
+	const handleChangePage = (nextPage: number) => {
+		if (nextPage === filters.page) return;
+		if (nextPage < 1 || nextPage > pagesCount) return;
+		setCurrentPage(nextPage);
+		handleGetData({ ...filters, page: nextPage });
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	};
+
 	return (
 		<Pagination
 			pagesCount={pagesCount}
 			currentPage={currentPage}
 			isDisabled={isDisabled}
-			onPageChange={onPageChange}
+			onPageChange={handleChangePage}
 		>
 			<PaginationContainer align='center' justify='space-between'>
 				<PaginationPrevious>
@@ -54,6 +79,6 @@ const CustomPagination = ({
 			</PaginationContainer>
 		</Pagination>
 	);
-};
+}
 
 export default CustomPagination;

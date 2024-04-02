@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from 'react';
 
 import Body from '../layout/Body';
 import { useAppSelector } from '../../store/hooks';
-import { selectAuth } from '../../store/user';
+import { selectAuth } from '@wia-client/src/store/auth';
 
 interface ProtectedPageProps {
 	originalUrl: string;
@@ -17,11 +17,14 @@ const ProtectedPage = ({
 	children,
 	center,
 }: ProtectedPageProps) => {
-	const { isLoggedIn, checkedJWT } = useAppSelector(selectAuth);
+	// next hooks
 	const router = useRouter();
 
+	// rtk hooks
+	const { isLoggedIn, checkedToken } = useAppSelector(selectAuth);
+
 	useEffect(() => {
-		if (!isLoggedIn && checkedJWT) {
+		if (!isLoggedIn && checkedToken && router.isReady) {
 			router.push({
 				pathname: '/signin',
 				query: {
@@ -29,7 +32,7 @@ const ProtectedPage = ({
 				},
 			});
 		}
-	}, [isLoggedIn, router, originalUrl, checkedJWT]);
+	}, [isLoggedIn, router, originalUrl, checkedToken]);
 
 	if (!isLoggedIn) {
 		return (

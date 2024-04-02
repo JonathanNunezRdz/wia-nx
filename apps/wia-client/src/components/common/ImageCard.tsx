@@ -1,31 +1,27 @@
 import { Box, Center, Image } from '@chakra-ui/react';
-import { MediaResponse, WaifuResponse } from '@wia-nx/types';
-import { MediaType } from '@prisma/client';
-
-import Loading from './Loading';
 import { useEffect, useState } from 'react';
-import { storage } from '@wia-client/src/store/api/firebase';
 import { getDownloadURL, ref } from 'firebase/storage';
+
+import { MediaResponse, WaifuResponse } from '@wia-nx/types';
+import { storage } from '@wia-client/src/store/api/firebase';
+import Loading from './Loading';
 
 interface ImageCardProps {
 	image: MediaResponse['image'] | WaifuResponse['image'];
-	type: MediaType | 'waifu';
 	imageName: string;
 	imageRoot?: string | undefined;
-	local?: boolean;
+	isLocal?: boolean;
 }
 
-const ImageCard = ({
-	image,
-	type,
-	imageName,
-	local = false,
-}: ImageCardProps) => {
+const ImageCard = ({ image, imageName, isLocal = false }: ImageCardProps) => {
+	// react hooks
 	const [imageSrc, setImageSrc] = useState('');
+
+	// effects
 	useEffect(() => {
 		const getImage = async () => {
 			if (image && image.src) {
-				if (local) {
+				if (isLocal) {
 					setImageSrc(image.src);
 				} else {
 					// const imageBlob = await getBlob(ref(storage, image.src))
@@ -46,8 +42,12 @@ const ImageCard = ({
 			}
 		};
 		getImage();
-	}, [image, local]);
-	const has = !!image;
+	}, [image, isLocal]);
+
+	// constants
+	const has = Boolean(image);
+
+	// render
 	if (!has) return <></>;
 	return (
 		<Box maxW='400px'>

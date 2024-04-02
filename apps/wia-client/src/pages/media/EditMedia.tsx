@@ -1,49 +1,59 @@
 import {
-	Button,
-	FormControl,
-	FormErrorMessage,
-	FormLabel,
-	HStack,
-	Input,
-	Select,
 	VStack,
+	FormControl,
+	FormLabel,
+	Input,
+	FormErrorMessage,
+	Select,
+	HStack,
+	Button,
 } from '@chakra-ui/react';
-import { EditMediaDto } from '@wia-nx/types';
 import { useRouter } from 'next/router';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectEditMedia } from '@wia-client/src/store/media';
+import { EditMediaDto } from '@wia-nx/types';
+import {
+	useAppSelector,
+	selectAuth,
+	useEditMediaMutation,
+	useGetEditMediaQuery,
+} from '@wia-client/src/store';
 import {
 	formatDate,
 	formatImageFileName,
-	loadImage,
+	parseMediaId,
+	parseRTKError,
 	prepareDate,
+	mediaLabel,
+	useImage,
 } from '@wia-client/src/utils';
-import { editMediaAction } from '@wia-client/src/store/media/actions';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import { SubmitHandler, useForm } from 'react-hook-form';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
 import MediaTypeOptions from '@wia-client/src/components/common/MediaTypeOptions';
-import { mediaLabel } from '@wia-client/src/utils/constants';
-import ImageCard from '@wia-client/src/components/common/ImageCard';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
 
 const EditMedia = () => {
-	// redux hooks
-	const dispatch = useAppDispatch();
-	const {
-		data: mediaToEdit,
-		status,
-		error,
-	} = useAppSelector(selectEditMedia);
-
 	// next hooks
 	const router = useRouter();
+	const mediaId = parseMediaId(router.query.mediaIdString);
 
-	// react hooks
-	const [currentImage, setCurrentImage] = useState<string>('');
-	const [imageFile, setImageFile] = useState<File>();
+	// rtk hooks
+	const { isLoggedIn } = useAppSelector(selectAuth);
+	const mediaQuery = useGetEditMediaQuery(mediaId, {
+		skip: !isLoggedIn && !router.isReady,
+	});
+	const [editMedia, editMediaState] = useEditMediaMutation();
+
+	// custom hooks
+	const {
+		currentImage,
+		imageFile,
+		imageFormat,
+		handleImageChange,
+		resetImage,
+	} = useImage();
 
 	// react-hook-form
 	const {
@@ -54,16 +64,18 @@ const EditMedia = () => {
 		formState: { errors, isDirty },
 	} = useForm<EditMediaDto>({
 		defaultValues: {
-			mediaId: mediaToEdit.id,
-			title: mediaToEdit.title,
-			knownAt: formatDate(new Date(mediaToEdit.knownAt).toISOString()),
-			type: mediaToEdit.type,
+			mediaId,
+			title: '',
+			knownAt: '',
+			type: 'anime',
 		},
 	});
 
 	// functions
-	const onSubmit: SubmitHandler<EditMediaDto> = async (data) => {
+	const onSubmit: SubmitHandler<EditMediaDto> = (data) => {
 		console.log('submitting edit media');
+		if (!mediaQuery.isSuccess) return;
+		const { data: mediaToEdit } = mediaQuery;
 
 		const newValues = {
 			...data,
@@ -80,42 +92,54 @@ const EditMedia = () => {
 			const sendImage = new File([imageFile], completeFileName, {
 				type: imageFile.type,
 			});
-			const res = await dispatch(
-				editMediaAction({ editDto: newValues, imageFile: sendImage })
-			);
-			if (res.meta.requestStatus === 'fulfilled') router.push('/media');
+			editMedia({ editDto: newValues, imageFile: sendImage });
 		} else {
 			const { imageFormat, ...rest } = newValues;
-			const res = await dispatch(
-				editMediaAction({
-					editDto: rest,
-				})
-			);
-			if (res.meta.requestStatus === 'fulfilled') router.push('/media');
+			editMedia({ editDto: rest });
 		}
 	};
 
-	const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-		const res = await loadImage(event.currentTarget.files);
-		setCurrentImage(res.result);
-		setImageFile(res.image);
-		setValue('imageFormat', res.format, { shouldDirty: true });
-	};
+	// effects
+	useEffect(() => {
+		if (mediaQuery.isSuccess) {
+			const { data: mediaToEdit } = mediaQuery;
+			setValue('title', mediaToEdit.title, { shouldDirty: false });
+			setValue(
+				'knownAt',
+				formatDate(new Date(mediaToEdit.knownAt).toISOString()),
+				{ shouldDirty: false }
+			);
+			setValue('type', mediaToEdit.type, { shouldDirty: false });
+		}
+	}, [mediaQuery, setValue]);
 
 	useEffect(() => {
-		if (mediaToEdit.image && typeof imageFile === 'undefined') {
-			setCurrentImage(mediaToEdit.image.src);
+		if (editMediaState.isSuccess && router.isReady) {
+			router.push('/media');
 		}
-	}, [mediaToEdit.image, imageFile]);
+	}, [editMediaState, router]);
+
+	useEffect(() => {
+		if (typeof imageFormat !== 'undefined') {
+			setValue('imageFormat', imageFormat, { shouldDirty: true });
+		}
+	}, [imageFormat, setValue]);
 
 	// render
+	if (!mediaQuery.isSuccess) return <></>;
 	return (
 		<ProtectedPage originalUrl='/media/edit'>
 			<VStack w='full' spacing={4}>
 				<PageTitle title='edit media' />
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<VStack spacing={4}>
-						<FormErrorMessageWrapper error={error?.message} />
+						<FormErrorMessageWrapper
+							error={
+								editMediaState.isError
+									? parseRTKError(editMediaState.error)
+									: undefined
+							}
+						/>
 						<FormControl isInvalid={Boolean(errors.title)}>
 							<FormLabel htmlFor='title'>title</FormLabel>
 							<Input
@@ -140,11 +164,7 @@ const EditMedia = () => {
 						<FormControl>
 							<FormLabel htmlFor='knownAt'>
 								when did you{' '}
-								{
-									mediaLabel.present[
-										watch('type') || mediaToEdit.type
-									]
-								}{' '}
+								{mediaLabel.present[watch('type') || 'anime']}{' '}
 								it?
 							</FormLabel>
 							<Input
@@ -154,27 +174,15 @@ const EditMedia = () => {
 							/>
 						</FormControl>
 
-						{currentImage && (
-							<ImageCard
-								image={{ src: currentImage }}
-								imageName={watch('title') || mediaToEdit.title}
-								type={watch('type') || mediaToEdit.type}
-								local={currentImage !== mediaToEdit.image?.src}
-							/>
-						)}
-						<FormControl>
-							<FormLabel htmlFor='image'>image</FormLabel>
-							<Input
-								id='image'
-								name='image'
-								type='file'
-								variant='filled'
-								accept='image/*'
-								onChange={handleImageChange}
-								py={2}
-								height='auto'
-							/>
-						</FormControl>
+						<ImageInput
+							currentImage={currentImage}
+							imageName={watch('title') || ''}
+							handleImageChange={handleImageChange}
+							handleImageReset={resetImage}
+							isLocal={
+								currentImage !== mediaQuery.data.image?.src
+							}
+						/>
 
 						<HStack>
 							<Button
@@ -186,7 +194,7 @@ const EditMedia = () => {
 							<Button
 								type='submit'
 								disabled={!isDirty}
-								isLoading={status === 'loading'}
+								isLoading={editMediaState.isLoading}
 								colorScheme={isDirty ? 'green' : 'gray'}
 							>
 								confirm
