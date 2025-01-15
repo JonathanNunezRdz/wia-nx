@@ -2,6 +2,7 @@ import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit';
 import { baseApi } from './api';
 import authReducer from './auth/authReducer';
 import mediaReducer from './media/mediaReducer';
+import { tradeReducer } from './trade/tradeReducer';
 import waifuReducer from './waifu/waifuReducer';
 
 export * from './auth';
@@ -15,6 +16,7 @@ export const store = configureStore({
 		auth: authReducer,
 		media: mediaReducer,
 		waifu: waifuReducer,
+		trade: tradeReducer,
 		[baseApi.reducerPath]: baseApi.reducer,
 	},
 	middleware: (getDefaultMiddleWare) =>

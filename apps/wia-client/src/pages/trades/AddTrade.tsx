@@ -1,18 +1,15 @@
-import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectMediaTitles } from '@wia-client/src/store/media';
-import { selectAddTrade } from '@wia-client/src/store/trade';
-import { selectAllUsers } from '@wia-client/src/store/user';
-import { selectWaifus } from '@wia-client/src/store/waifu';
+import { useAppDispatch } from '@wia-client/src/store/hooks';
 
+import { useGetMembersQuery } from '@wia-client/src/store/user';
 
 function AddTrade() {
-    //rtk hooks
-    const dispatch = useAppDispatch()
-    const addTrade = useAppSelector(selectAddTrade);
-    const members = useAppSelector(selectAllUsers);
-    // write getMediaTitlesFromUser
-    // write getWaifusFromMediaFromUser
-    return ();
+	//rtk hooks
+	const dispatch = useAppDispatch();
+	// const addTrade = useAppSelector(selectAddTrade);
+	const membersQuery = useGetMembersQuery();
+	// write getMediaTitlesFromUser
+	// write getWaifusFromMediaFromUser
+	return null;
 }
 
 export default AddTrade;

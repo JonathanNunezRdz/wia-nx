@@ -2,58 +2,78 @@ import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
 import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import CustomPagination from '@wia-client/src/components/common/CustomPagination';
 import LinkButton from '@wia-client/src/components/common/LinkButton';
+import Loading from '@wia-client/src/components/common/Loading';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
 import Body from '@wia-client/src/components/layout/Body';
-import { usePagination } from '@wia-client/src/components/pagination';
+import { selectAuth, useGetMeQuery } from '@wia-client/src/store';
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
-import { selectTrades } from '@wia-client/src/store/trade';
-import { getTradesAction } from '@wia-client/src/store/trade/actions';
-import { selectAuth, selectUser } from '@wia-client/src/store/user';
-import { GetTradesDto } from '@wia-nx/types';
+import { useGetTradesQuery } from '@wia-client/src/store/trade/tradeApi';
+import {
+	changeTradePage,
+	selectTradeFilter,
+} from '@wia-client/src/store/trade/tradeReducer';
+import { type GetTradesDto, type HttpError } from '@wia-nx/types';
 import { NextSeo } from 'next-seo';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 import TradeCard from './TradeCard';
 
 function Trades() {
 	// rtk hooks
 	const dispatch = useAppDispatch();
 	const { isLoggedIn } = useAppSelector(selectAuth);
-	const { data: user } = useAppSelector(selectUser);
-	const trades = useAppSelector(selectTrades);
-
-	const { pages, pagesCount, currentPage, isDisabled, setCurrentPage } =
-		usePagination({
-			total: trades.totalTrades,
-			limits: {
-				inner: 2,
-				outer: 2,
-			},
-			initialState: {
-				pageSize: 9,
-				isDisabled: false,
-				currentPage: trades.appliedFilters.page,
-			},
-		});
+	const userQuery = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const appliedFilters = useAppSelector(selectTradeFilter);
+	const tradeQuery = useGetTradesQuery(appliedFilters);
 
 	const handleGetTrades = useCallback(
 		(options: GetTradesDto) => {
-			setCurrentPage(options.page);
-			dispatch(getTradesAction(options));
+			dispatch(changeTradePage(options.page));
 		},
-		[dispatch, setCurrentPage]
+		[dispatch]
 	);
 
-	const handleChangePage = (nextPage: number) => {
-		if (nextPage === trades.appliedFilters.page) return;
-		if (nextPage < 1 || nextPage > pagesCount) return;
-		handleGetTrades({ ...trades.appliedFilters, page: nextPage });
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	};
-
-	useEffect(() => {
-		handleGetTrades(trades.appliedFilters);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [handleGetTrades]);
+	const mainContent = useMemo(() => {
+		if (tradeQuery.isFetching) return <Loading />;
+		if (tradeQuery.isSuccess) {
+			if (tradeQuery.data.trades.length > 0) {
+				return tradeQuery.data.trades.map((item) => (
+					<TradeCard
+						key={item.id}
+						trade={item}
+						ownId={userQuery.data?.id ?? ''}
+					/>
+				));
+			}
+			return (
+				<Box>
+					<Text>no trades have happened in the wia</Text>
+				</Box>
+			);
+		}
+		if (tradeQuery.isError) {
+			if ('status' in tradeQuery.error) {
+				const { status } = tradeQuery.error;
+				if (status === 'FETCH_ERROR') {
+					return (
+						<Box>
+							<Text>an error has ocurred, try again later</Text>
+						</Box>
+					);
+				}
+				const parsedError = tradeQuery.error.data as HttpError;
+				return (
+					<Box>
+						<Text>
+							{typeof parsedError.message === 'string'
+								? parsedError.message
+								: parsedError.message.join('\n')}
+						</Text>
+					</Box>
+				);
+			}
+		}
+		return <></>;
+	}, [tradeQuery, userQuery]);
 
 	return (
 		<Body h>
@@ -77,61 +97,28 @@ function Trades() {
 							icon={<RepeatIcon />}
 							size='sm'
 							mt={1}
-							onClick={() =>
-								handleGetTrades(trades.appliedFilters)
-							}
-							isLoading={trades.status === 'loading'}
+							onClick={() => handleGetTrades(appliedFilters)}
+							isLoading={tradeQuery.isFetching}
 						/>
 					</Box>
 				</PageTitle>
 
 				<CustomPagination
-					pages={pages}
-					pagesCount={pagesCount}
-					currentPage={currentPage}
-					isDisabled={isDisabled}
-					onPageChange={handleChangePage}
+					totalItems={tradeQuery.data?.totalTrades || 0}
+					handleGetData={handleGetTrades}
+					filters={appliedFilters}
 				/>
 
 				<Box w='full'>
 					<SimpleGrid columns={{ sm: 2, md: 3 }} spacing={4}>
-						{trades.status === 'succeeded' ? (
-							trades.data.length > 0 ? (
-								trades.data.map((trade) => (
-									<TradeCard
-										key={trade.id}
-										trade={trade}
-										ownId={user.id}
-									/>
-								))
-							) : (
-								<Box>
-									<Text>
-										no trades have benn added to the wia
-									</Text>
-								</Box>
-							)
-						) : (
-							<Box>
-								<Text>
-									{typeof trades.error !== 'undefined'
-										? typeof trades.error.message ===
-										  'string'
-											? trades.error.message
-											: trades.error.message.join(' | ')
-										: 'Internal server error'}
-								</Text>
-							</Box>
-						)}
+						{mainContent}
 					</SimpleGrid>
 				</Box>
 
 				<CustomPagination
-					pages={pages}
-					pagesCount={pagesCount}
-					currentPage={currentPage}
-					isDisabled={isDisabled}
-					onPageChange={handleChangePage}
+					totalItems={tradeQuery.data?.totalTrades || 0}
+					handleGetData={handleGetTrades}
+					filters={appliedFilters}
 				/>
 			</VStack>
 		</Body>

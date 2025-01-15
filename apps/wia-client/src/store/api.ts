@@ -28,7 +28,7 @@ export const baseApi = createApi({
 			return customParamsSerializer(params);
 		},
 	}),
-	tagTypes: ['User', 'Auth', 'Media', 'Members', 'Waifu'],
+	tagTypes: ['User', 'Auth', 'Media', 'Members', 'Waifu', 'Trade'],
 	endpoints: () => ({}),
 });
 

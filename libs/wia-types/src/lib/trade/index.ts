@@ -1,7 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { RequestStatus } from '../common';
 import { GetTradesDto } from './get-trades.dto';
-import { TradeResponse } from './trade.response';
 
 export * from './create-trade.dto';
 export * from './get-trades.dto';
@@ -9,14 +7,8 @@ export * from './trade.response';
 
 export interface TradeState {
 	get: {
-		data: TradeResponse[];
-		totalTrades: number;
-		appliedFilters: {
-			page: number;
-			limit: number;
-		};
-	} & RequestStatus;
-	add: RequestStatus;
+		appliedFilters: GetTradesDto;
+	};
 }
 
 export const prismaSelectTrades = Prisma.validator<Prisma.TradeDefaultArgs>()({

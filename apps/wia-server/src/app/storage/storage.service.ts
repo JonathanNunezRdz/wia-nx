@@ -13,9 +13,9 @@ export class StorageService {
 
 	constructor(private config: ConfigService) {
 		const serviceAccountCred = serviceAccount;
-		const privateKey = JSON.parse(
-			config.getOrThrow('FIREBASE_PRIVATE_KEY')
-		);
+		const envKey = config.getOrThrow<string>('FIREBASE_PRIVATE_KEY');
+		console.log(envKey);
+		const privateKey = envKey;
 		if (typeof privateKey === 'undefined' || privateKey === '') {
 			throw new Error(
 				'firebase private key not found, be sure to define it in env'

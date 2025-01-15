@@ -118,7 +118,7 @@ function Media() {
 				</Box>
 
 				<CustomPagination
-					key='media'
+					key='mediaTop'
 					totalItems={mediaQuery.data?.totalMedias || 0}
 					handleGetData={handleGetMedia}
 					filters={appliedFilters}
@@ -131,7 +131,7 @@ function Media() {
 				</Box>
 
 				<CustomPagination
-					key='media'
+					key='mediaBottom'
 					totalItems={mediaQuery.data?.totalMedias || 0}
 					handleGetData={handleGetMedia}
 					filters={appliedFilters}

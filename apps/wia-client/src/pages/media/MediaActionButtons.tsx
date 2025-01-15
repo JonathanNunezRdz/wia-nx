@@ -34,10 +34,14 @@ function MediaActionButtons({ isLoggedIn, query }: MediaActionButtonsProps) {
 
 	// functions
 	const handleDeleteMedia = async () => {
-		if (router.pathname === '/media' || router.pathname === '/media/waifus')
+		if (
+			router.pathname === '/media' ||
+			router.pathname === '/media/waifus'
+		) {
 			deleteMedia(query.mediaIdString);
-
-		throw new Error('delete media from illegal place');
+		} else {
+			throw new Error('delete media from illegal place');
+		}
 	};
 
 	// render
