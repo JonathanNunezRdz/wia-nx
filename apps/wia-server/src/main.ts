@@ -11,7 +11,7 @@ async function bootstrap() {
 		})
 	);
 	app.enableCors({
-		origin: ['http://localhost:4200', 'https://wia-nx.vercel.app'],
+		origin: ['http://localhost:4200', 'https://thewia.vercel.app'],
 	});
 
 	const globalPrefix = 'api';
