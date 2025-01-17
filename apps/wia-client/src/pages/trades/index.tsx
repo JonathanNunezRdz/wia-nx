@@ -107,6 +107,7 @@ function Trades() {
 					totalItems={tradeQuery.data?.totalTrades || 0}
 					handleGetData={handleGetTrades}
 					filters={appliedFilters}
+					isLoading={tradeQuery.isFetching}
 				/>
 
 				<Box w='full'>
@@ -119,6 +120,7 @@ function Trades() {
 					totalItems={tradeQuery.data?.totalTrades || 0}
 					handleGetData={handleGetTrades}
 					filters={appliedFilters}
+					isLoading={tradeQuery.isFetching}
 				/>
 			</VStack>
 		</Body>

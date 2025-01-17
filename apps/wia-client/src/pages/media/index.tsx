@@ -118,10 +118,10 @@ function Media() {
 				</Box>
 
 				<CustomPagination
-					key='mediaTop'
 					totalItems={mediaQuery.data?.totalMedias || 0}
 					handleGetData={handleGetMedia}
 					filters={appliedFilters}
+					isLoading={mediaQuery.isFetching}
 				/>
 
 				<Box w='full'>
@@ -131,10 +131,10 @@ function Media() {
 				</Box>
 
 				<CustomPagination
-					key='mediaBottom'
 					totalItems={mediaQuery.data?.totalMedias || 0}
 					handleGetData={handleGetMedia}
 					filters={appliedFilters}
+					isLoading={mediaQuery.isFetching}
 				/>
 			</VStack>
 		</Body>

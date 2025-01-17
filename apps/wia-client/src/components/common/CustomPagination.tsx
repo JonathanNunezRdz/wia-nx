@@ -1,4 +1,5 @@
 import { Text } from '@chakra-ui/react';
+import { useEffect } from 'react';
 import {
 	Pagination,
 	PaginationContainer,
@@ -16,12 +17,14 @@ type CustomPaginationProps<T extends WithFilters> = {
 	totalItems: number;
 	handleGetData: (args: T) => void;
 	filters: T;
+	isLoading: boolean;
 };
 
 function CustomPagination<T extends WithFilters>({
 	totalItems,
 	handleGetData,
 	filters,
+	isLoading,
 }: CustomPaginationProps<T>) {
 	// pagination hook
 	const { pages, pagesCount, currentPage, isDisabled, setCurrentPage } =
@@ -41,20 +44,23 @@ function CustomPagination<T extends WithFilters>({
 	const handleChangePage = (nextPage: number) => {
 		if (nextPage === filters.page) return;
 		if (nextPage < 1 || nextPage > pagesCount) return;
-		setCurrentPage(nextPage);
 		handleGetData({ ...filters, page: nextPage });
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
+
+	useEffect(() => {
+		setCurrentPage(filters.page);
+	}, [filters.page]);
 
 	return (
 		<Pagination
 			pagesCount={pagesCount}
 			currentPage={currentPage}
-			isDisabled={isDisabled}
+			isDisabled={isDisabled || isLoading}
 			onPageChange={handleChangePage}
 		>
 			<PaginationContainer align='center' justify='space-between'>
-				<PaginationPrevious>
+				<PaginationPrevious isLoading={isLoading}>
 					<Text>Previous</Text>
 				</PaginationPrevious>
 				<PaginationPageGroup
@@ -70,10 +76,11 @@ function CustomPagination<T extends WithFilters>({
 							_current={{
 								bg: 'green.300',
 							}}
+							isLoading={isLoading}
 						/>
 					))}
 				</PaginationPageGroup>
-				<PaginationNext>
+				<PaginationNext isLoading={isLoading}>
 					<Text>Next</Text>
 				</PaginationNext>
 			</PaginationContainer>

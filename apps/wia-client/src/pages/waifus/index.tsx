@@ -116,10 +116,10 @@ function Waifus() {
 				</Box>
 
 				<CustomPagination
-					key='waifus'
 					totalItems={waifuQuery.data?.totalWaifus ?? 0}
 					handleGetData={handleGetWaifus}
 					filters={appliedFilters}
+					isLoading={waifuQuery.isFetching}
 				/>
 
 				<Box w='full'>
@@ -129,10 +129,10 @@ function Waifus() {
 				</Box>
 
 				<CustomPagination
-					key='waifus'
 					totalItems={waifuQuery.data?.totalWaifus ?? 0}
 					handleGetData={handleGetWaifus}
 					filters={appliedFilters}
+					isLoading={waifuQuery.isFetching}
 				/>
 			</VStack>
 		</Body>
