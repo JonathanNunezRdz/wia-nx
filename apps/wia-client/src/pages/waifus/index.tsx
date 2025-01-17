@@ -2,23 +2,23 @@ import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
 import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { useCallback, useMemo } from 'react';
 
-import { GetAllWaifusDto, HttpError } from '@wia-nx/types';
-import {
-	changeWaifuPage,
-	selectWaifuFilter,
-	useGetAllWaifusQuery,
-	selectAuth,
-	useAppDispatch,
-	useAppSelector,
-	useGetMeQuery,
-} from '@wia-client/src/store';
 import CustomPagination from '@wia-client/src/components/common/CustomPagination';
 import LinkButton from '@wia-client/src/components/common/LinkButton';
+import Loading from '@wia-client/src/components/common/Loading';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
 import Body from '@wia-client/src/components/layout/Body';
+import {
+	changeWaifuPage,
+	selectAuth,
+	selectWaifuFilter,
+	useAppDispatch,
+	useAppSelector,
+	useGetAllWaifusQuery,
+	useGetMeQuery,
+} from '@wia-client/src/store';
+import { GetAllWaifusDto, HttpError } from '@wia-nx/types';
 import WaifuCard from './WaifuCard';
 import WaifuFilterOptions from './WaifuFilterOptions';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import Loading from '@wia-client/src/components/common/Loading';
 
 function Waifus() {
 	// rtk hooks
@@ -31,7 +31,7 @@ function Waifus() {
 	// functions
 	const handleGetWaifus = useCallback(
 		(options: GetAllWaifusDto) => {
-			dispatch(changeWaifuPage(options.page));
+			dispatch(changeWaifuPage(options));
 		},
 		[dispatch]
 	);

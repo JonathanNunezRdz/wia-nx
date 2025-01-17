@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { MediaState } from '@wia-nx/types';
+import { MediaState, type GetMediaDto } from '@wia-nx/types';
 import { RootState } from '..';
 import { mediaApi } from './mediaApi';
 
@@ -19,8 +19,8 @@ export const mediaSlice = createSlice({
 	name: 'media',
 	initialState,
 	reducers: {
-		changePage: (state, action: PayloadAction<number>) => {
-			state.get.appliedFilters.page = action.payload;
+		changePage: (state, action: PayloadAction<GetMediaDto>) => {
+			state.get.appliedFilters = action.payload;
 		},
 	},
 	extraReducers(builder) {

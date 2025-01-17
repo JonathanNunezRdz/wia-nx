@@ -91,8 +91,41 @@ export type PrismaMediaResponse = Prisma.MediaGetPayload<
 	typeof prismaSelectMedia
 >;
 
-export const prismaMediaFindManyInput = (dto: GetMediaDto) =>
-	Prisma.validator<Prisma.MediaFindManyArgs>()({
+export const prismaMediaFindManyInput = (dto: GetMediaDto) => {
+	let userFilter: Prisma.MediaFindManyArgs['where'] | undefined;
+	if (typeof dto.users !== 'undefined') {
+		const { users } = dto;
+		if (users.length === 1) {
+			userFilter = {
+				knownBy: {
+					some: {
+						user: {
+							id: {
+								in: users,
+							},
+						},
+					},
+				},
+			};
+		} else if (users.length > 1) {
+			userFilter = {
+				AND: [
+					...users.map((user) => ({
+						knownBy: {
+							some: {
+								user: {
+									id: {
+										in: [user],
+									},
+								},
+							},
+						},
+					})),
+				],
+			};
+		}
+	}
+	return Prisma.validator<Prisma.MediaFindManyArgs>()({
 		where: {
 			title: {
 				contains: dto.title,
@@ -101,15 +134,7 @@ export const prismaMediaFindManyInput = (dto: GetMediaDto) =>
 			type: {
 				in: dto.type,
 			},
-			knownBy: {
-				some: {
-					user: {
-						id: {
-							in: dto.users,
-						},
-					},
-				},
-			},
+			...userFilter,
 		},
 		take: dto.limit,
 		orderBy: {
@@ -118,3 +143,4 @@ export const prismaMediaFindManyInput = (dto: GetMediaDto) =>
 		skip: (dto.page - 1) * dto.limit,
 		select: prismaSelectMedia.select,
 	});
+};

@@ -22,7 +22,7 @@ export class GetAllWaifusDto {
 	@Min(1)
 	limit: number;
 
-	@Transform(({ value }) => value.split(',').map(Number))
+	@Transform(({ value }) => value.split(','))
 	@IsArray()
 	@ArrayNotEmpty()
 	@IsOptional()

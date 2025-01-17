@@ -49,17 +49,18 @@ const WaifuFilterOptions = ({ getWaifus }: WaifuFilterOptionsProps) => {
 	const onSubmit: SubmitHandler<WaifuFilterInputs> = (data) => {
 		const users: string[] = [];
 		const level: WaifuLevel[] = [];
-		if (isSuccess) {
-			Object.entries(data).forEach(([key, value]) => {
+		Object.entries(data).forEach(([key, value]) => {
+			if (isSuccess) {
 				if (isValidWaifuLevel(key) && value === true) level.push(key);
 
 				if (
-					members.findIndex((member) => member.id === key) &&
+					members.findIndex((member) => member.id === key) > -1 &&
 					value === true
-				)
+				) {
 					users.push(key);
-			});
-		}
+				}
+			}
+		});
 
 		getWaifus({
 			page: 1,

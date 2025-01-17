@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { WaifuState } from '@wia-nx/types';
+import { WaifuState, type GetAllWaifusDto } from '@wia-nx/types';
 import { RootState } from '..';
 import { waifuApi } from './waifuApi';
 
@@ -19,8 +19,8 @@ export const waifuSlice = createSlice({
 	name: 'waifu',
 	initialState,
 	reducers: {
-		changePage: (state, action: PayloadAction<number>) => {
-			state.get.appliedFilters.page = action.payload;
+		changePage: (state, action: PayloadAction<GetAllWaifusDto>) => {
+			state.get.appliedFilters = action.payload;
 		},
 	},
 	extraReducers(builder) {

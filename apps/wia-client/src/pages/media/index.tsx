@@ -1,22 +1,22 @@
-import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
+import { Box, IconButton, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { useCallback, useMemo } from 'react';
 
-import { GetMediaDto, HttpError } from '@wia-nx/types';
+import CustomPagination from '@wia-client/src/components/common/CustomPagination';
+import LinkButton from '@wia-client/src/components/common/LinkButton';
+import Loading from '@wia-client/src/components/common/Loading';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
+import Body from '@wia-client/src/components/layout/Body';
 import {
+	changeMediaPage,
+	selectAuth,
+	selectMediaFilter,
 	useAppDispatch,
 	useAppSelector,
-	selectAuth,
 	useGetMeQuery,
-	changeMediaPage,
-	selectMediaFilter,
 	useGetMediaQuery,
 } from '@wia-client/src/store';
-import Body from '@wia-client/src/components/layout/Body';
-import LinkButton from '@wia-client/src/components/common/LinkButton';
-import CustomPagination from '@wia-client/src/components/common/CustomPagination';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import Loading from '@wia-client/src/components/common/Loading';
+import { GetMediaDto, HttpError } from '@wia-nx/types';
 import MediaCard from './MediaCard';
 import MediaFilterOptions from './MediaFilterOptions';
 
@@ -33,7 +33,7 @@ function Media() {
 	// custom functions
 	const handleGetMedia = useCallback(
 		(options: GetMediaDto) => {
-			dispatch(changeMediaPage(options.page));
+			dispatch(changeMediaPage(options));
 		},
 		[dispatch]
 	);
