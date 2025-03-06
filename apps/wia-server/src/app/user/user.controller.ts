@@ -9,7 +9,11 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
-import { EditUserDto, GetAllUsersResponse } from '@wia-nx/types';
+import {
+	EditUserDto,
+	GetAllUsersResponse,
+	type UpdatePasswordDto,
+} from '@wia-nx/types';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { UserService } from './user.service';
@@ -19,13 +23,6 @@ export class UserController {
 	constructor(private userService: UserService) {}
 
 	// get routes
-
-	@Get('test-rename')
-	copyFiles() {
-		// return this.userService.renameImagesToIds();
-		return false;
-	}
-
 	@UseGuards(JwtGuard)
 	@Get('me')
 	getMe(@GetUser('id') userId: User['id']) {
@@ -52,26 +49,13 @@ export class UserController {
 		return this.userService.editUser({ userDto, userId, imageFile });
 	}
 
-	@Patch('migrate')
-	migrate() {
+	@UseGuards(JwtGuard)
+	@Patch('update-password')
+	updatePassword(
+		@GetUser('id') userId: User['id'],
+		@Body() dto: UpdatePasswordDto
+	) {
 		// return this.userService.migrate();
-		return false;
+		return this.userService.updatePassword({ ...dto, userId });
 	}
-
-	// delete routes
-
-	// @Get('checkup')
-	// checkup() {
-	// 	return this.userService.checkup();
-	// }
-
-	// // @Get('waifu_firebase')
-	// waifuFirebase() {
-	// 	return this.userService.waifuFirebase();
-	// }
-
-	// // @Get('media_firebase')
-	// mediaFirebase() {
-	// 	return this.userService.mediaFirebase();
-	// }
 }

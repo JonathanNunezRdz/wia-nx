@@ -22,7 +22,7 @@
 				"development": {},
 				"production": {}
 			},
-			"dependsOn": ["prisma:prepare-db"]
+			"dependsOn": ["prisma:generate-types"]
 		},
 		"serve": {
 			"executor": "@nx/js:node",
@@ -39,8 +39,7 @@
 					"buildTarget": "wia-server:build:production",
 					"inspect": false
 				}
-			},
-			"dependsOn": ["prisma:prepare-db"]
+			}
 		},
 		"lint": {
 			"executor": "@nx/linter:eslint",

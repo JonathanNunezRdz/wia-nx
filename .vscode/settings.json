@@ -1,0 +1,6 @@
+{
+	"emmet.showExpandedAbbreviation": "never",
+	"emmet.showSuggestionsAsSnippets": false,
+	"emmet.showAbbreviationSuggestions": false,
+	"editor.snippetSuggestions": "none"
+}

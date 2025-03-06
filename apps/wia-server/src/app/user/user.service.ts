@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	ForbiddenException,
+	Injectable,
+	NotFoundException,
+	PreconditionFailedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import {
@@ -8,6 +13,7 @@ import {
 	GetUserResponse,
 	UserResponse,
 	prismaSelectUser,
+	type UpdatePasswordService,
 } from '@wia-nx/types';
 import { upsertUserImage } from '@wia-server/src/utils';
 // import { hash } from 'argon2';
@@ -16,6 +22,7 @@ import { upsertUserImage } from '@wia-server/src/utils';
 // import mongoose, { Schema } from 'mongoose';
 // import { readdir } from 'fs/promises';
 
+import { hash, verify } from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 
@@ -890,5 +897,46 @@ export class UserService {
 		}
 
 		return { ...updatedUser, image };
+	}
+
+	async updatePassword(dto: UpdatePasswordService) {
+		// check confirm password is the same as new password
+		if (dto.newPassword !== dto.confirmPassword)
+			throw new PreconditionFailedException(
+				'new password and confirm password must match'
+			);
+
+		// check user
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: dto.userId,
+			},
+			select: {
+				hash: true,
+			},
+		});
+		if (!user) throw new NotFoundException('user not found');
+
+		// check user current password
+		const valid = await verify(user.hash, dto.currentPassword);
+		if (!valid) throw new ForbiddenException('incorrect credentials');
+
+		// check new password is not the same as current
+		const sameAsCurrent = await verify(user.hash, dto.newPassword);
+		if (sameAsCurrent)
+			throw new PreconditionFailedException(
+				'new password must be different from current'
+			);
+
+		// update password
+		const newPassword = await hash(dto.newPassword);
+		await this.prisma.user.update({
+			where: {
+				id: dto.userId,
+			},
+			data: {
+				hash: newPassword,
+			},
+		});
 	}
 }

@@ -2,21 +2,23 @@ import { Center, Spinner } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { ReactNode, useEffect } from 'react';
 
-import Body from '../layout/Body';
-import { useAppSelector } from '../../store/hooks';
 import { selectAuth } from '@wia-client/src/store/auth';
+import { useAppSelector } from '../../store/hooks';
+import Body from '../layout/Body';
 
 interface ProtectedPageProps {
 	originalUrl: string;
 	children: ReactNode;
-	center?: boolean;
+	centerX?: boolean;
+	centerY?: boolean;
 }
 
-const ProtectedPage = ({
+function ProtectedPage({
 	originalUrl,
 	children,
-	center,
-}: ProtectedPageProps) => {
+	centerX = false,
+	centerY = false,
+}: ProtectedPageProps) {
 	// next hooks
 	const router = useRouter();
 
@@ -42,14 +44,11 @@ const ProtectedPage = ({
 		);
 	}
 
-	if (center)
-		return (
-			<Body v h>
-				{children}
-			</Body>
-		);
-
-	return <Body>{children}</Body>;
-};
+	return (
+		<Body h={centerX} v={centerY}>
+			{children}
+		</Body>
+	);
+}
 
 export default ProtectedPage;

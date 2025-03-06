@@ -17,7 +17,9 @@ export class StorageService {
 		const privateKey = (
 			JSON.parse(`{"envKey": "${envKey}"}`) as { envKey: string }
 		).envKey;
-		console.log(privateKey);
+		if (config.get('NODE_ENV') !== 'production') {
+			console.log(privateKey);
+		}
 		if (typeof privateKey === 'undefined' || privateKey === '') {
 			throw new Error(
 				'firebase private key not found, be sure to define it in env'

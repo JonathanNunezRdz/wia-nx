@@ -5,6 +5,7 @@ import { GetAllUsersResponse, GetUserResponse } from './user.response';
 export * from './edit-user.dto';
 export * from './signin.dto';
 export * from './signup.dto';
+export * from './update-password.dto';
 export * from './user.response';
 
 export interface UserState {

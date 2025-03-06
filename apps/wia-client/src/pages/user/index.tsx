@@ -1,15 +1,16 @@
-import { Button, Heading, VStack } from '@chakra-ui/react';
-import { NextSeo } from 'next-seo';
+import { Button, VStack } from '@chakra-ui/react';
 import type { FC } from 'react';
 
+import PageTitle from '@wia-client/src/components/common/PageTitle';
 import {
-	useAppDispatch,
-	useAppSelector,
 	selectAuth,
 	signOut,
+	useAppDispatch,
+	useAppSelector,
 	useGetMeQuery,
 } from '@wia-client/src/store';
 import ProtectedPage from '../../components/auth/ProtectedPage';
+import { UpdatePasswordForm } from './UpdatePasswordForm';
 
 const User: FC = () => {
 	// rtk hooks
@@ -22,16 +23,19 @@ const User: FC = () => {
 	};
 
 	return (
-		<ProtectedPage originalUrl='/user' center>
-			<NextSeo title='user' />
-			<VStack>
-				<Heading>
-					profile -{' '}
-					{userQuery.isSuccess
-						? userQuery.data.alias
-						: 'loading user...'}
-				</Heading>
-				<Button onClick={handleSignOut}>sign out</Button>
+		<ProtectedPage originalUrl='/user'>
+			<VStack w='full' spacing={4}>
+				<PageTitle
+					title={`account - ${
+						userQuery.isSuccess
+							? userQuery.data.alias
+							: 'loading user...'
+					}`}
+				>
+					<Button onClick={handleSignOut}>sign out</Button>
+				</PageTitle>
+
+				<UpdatePasswordForm />
 			</VStack>
 		</ProtectedPage>
 	);

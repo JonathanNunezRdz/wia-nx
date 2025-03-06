@@ -1,4 +1,4 @@
-import { Box, Heading, HStack } from '@chakra-ui/react';
+import { Box, HStack, Heading } from '@chakra-ui/react';
 import { NextSeo } from 'next-seo';
 import { ReactNode } from 'react';
 

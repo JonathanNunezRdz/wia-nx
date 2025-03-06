@@ -1,4 +1,8 @@
-import { GetAllUsersResponse, GetUserResponse } from '@wia-nx/types';
+import {
+	GetAllUsersResponse,
+	GetUserResponse,
+	type UpdatePasswordDto,
+} from '@wia-nx/types';
 import { baseApi } from '../api';
 
 export const userApi = baseApi.injectEndpoints({
@@ -19,8 +23,18 @@ export const userApi = baseApi.injectEndpoints({
 			},
 			providesTags: ['Members'],
 		}),
+		updatePassword: builder.mutation<void, UpdatePasswordDto>({
+			query(body) {
+				return {
+					url: '/user/update-password',
+					method: 'PATCH',
+					body,
+				};
+			},
+		}),
 	}),
 });
 
 export const { resetApiState: resetUserApi } = userApi.util;
-export const { useGetMeQuery, useGetMembersQuery } = userApi;
+export const { useGetMeQuery, useGetMembersQuery, useUpdatePasswordMutation } =
+	userApi;
