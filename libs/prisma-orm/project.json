@@ -34,6 +34,12 @@
 				"cwd": "libs/prisma-orm"
 			}
 		},
+		"studio": {
+			"command": "prisma studio",
+			"options": {
+				"cwd": "libs/prisma-orm"
+			}
+		},
 		"lint": {
 			"executor": "@nx/linter:eslint",
 			"outputs": ["{options.outputFile}"],

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { DeleteIcon } from '@chakra-ui/icons';
 import {
 	Flex,
 	FormControl,
@@ -6,7 +6,7 @@ import {
 	IconButton,
 	Input,
 } from '@chakra-ui/react';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { useState } from 'react';
 
 import { ChangeImageHandler } from '@wia-nx/types';
 import ImageCard from './ImageCard';

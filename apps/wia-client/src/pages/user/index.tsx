@@ -10,6 +10,7 @@ import {
 	useGetMeQuery,
 } from '@wia-client/src/store';
 import ProtectedPage from '../../components/auth/ProtectedPage';
+import { EditUser } from './EditUser';
 import { UpdatePasswordForm } from './UpdatePasswordForm';
 
 const User: FC = () => {
@@ -34,6 +35,8 @@ const User: FC = () => {
 				>
 					<Button onClick={handleSignOut}>sign out</Button>
 				</PageTitle>
+
+				<EditUser />
 
 				<UpdatePasswordForm />
 			</VStack>

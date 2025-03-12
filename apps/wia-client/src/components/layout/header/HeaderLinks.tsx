@@ -1,9 +1,12 @@
 import { Link } from '@chakra-ui/next-js';
-import { Spinner } from '@chakra-ui/react';
+import { Avatar, Flex, Spinner } from '@chakra-ui/react';
+import { storage } from '@wia-client/src/store/api/firebase';
 import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 import { useAppSelector } from '@wia-client/src/store/hooks';
 import { useGetMeQuery } from '@wia-client/src/store/user';
-import { useMemo } from 'react';
+import type { MyImage } from '@wia-nx/types';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { useEffect, useMemo, useState } from 'react';
 
 interface IHeaderLinksProps {
 	links: string[];
@@ -45,7 +48,12 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 			<>
 				{LinkComponents}
 				<Link href='/user' me={4}>
-					{user.alias}
+					<Flex flexDir='row' alignItems='center' gap='2'>
+						{user.alias}
+						{user.image ? (
+							<UserAvatar name={user.alias} image={user.image} />
+						) : null}
+					</Flex>
 				</Link>
 			</>
 		);
@@ -58,6 +66,33 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 			</Link>
 		</>
 	);
+}
+
+type UserAvatarProps = {
+	image: MyImage;
+	name: string;
+};
+
+function UserAvatar({ image, name }: UserAvatarProps) {
+	const [imageSrc, setImageSrc] = useState('');
+
+	useEffect(() => {
+		const getImage = async () => {
+			try {
+				const res = await getDownloadURL(ref(storage, image.src));
+				setImageSrc(res);
+			} catch (error) {
+				console.error(error);
+				const res = await getDownloadURL(
+					ref(storage, 'static/Image-not-found.png')
+				);
+				setImageSrc(res);
+			}
+		};
+		getImage();
+	}, [image]);
+
+	return <Avatar name={name} src={imageSrc} />;
 }
 
 export default HeaderLinks;

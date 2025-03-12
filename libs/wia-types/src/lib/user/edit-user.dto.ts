@@ -32,3 +32,8 @@ export interface EditUserService {
 	userDto: EditUserDto;
 	imageFile?: Express.Multer.File;
 }
+
+export interface EditUserThunk {
+	dto: EditUserDto;
+	imageFile?: File;
+}

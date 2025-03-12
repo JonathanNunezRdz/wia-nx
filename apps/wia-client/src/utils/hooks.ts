@@ -1,9 +1,13 @@
 import { ImageFormat } from '@prisma/client';
-import { ChangeImageHandler } from '@wia-nx/types';
-import { ChangeEvent, useState } from 'react';
+import { ChangeImageHandler, type MyImage } from '@wia-nx/types';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { loadImage } from '.';
 
-export function useImage() {
+type UseImageProps = {
+	originalImage?: MyImage;
+};
+
+export function useImage({ originalImage }: UseImageProps = {}) {
 	const [currentImage, setCurrentImage] = useState('');
 	const [imageFile, setImageFile] = useState<File>();
 	const [imageFormat, setImageFormat] = useState<ImageFormat | undefined>();
@@ -18,10 +22,16 @@ export function useImage() {
 	};
 
 	const resetImage = () => {
-		setCurrentImage('');
+		setCurrentImage(originalImage?.src || '');
 		setImageFile(undefined);
 		setImageFormat(undefined);
 	};
+
+	useEffect(() => {
+		if (originalImage) {
+			setCurrentImage(originalImage.src);
+		}
+	}, [originalImage]);
 
 	return {
 		currentImage,

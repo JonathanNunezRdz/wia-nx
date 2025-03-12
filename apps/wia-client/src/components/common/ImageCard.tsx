@@ -1,9 +1,9 @@
-import { Box, Center, Image } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { Box, Center, Flex, Image } from '@chakra-ui/react';
 import { getDownloadURL, ref } from 'firebase/storage';
+import { useEffect, useState } from 'react';
 
-import { MediaResponse, WaifuResponse } from '@wia-nx/types';
 import { storage } from '@wia-client/src/store/api/firebase';
+import { MediaResponse, WaifuResponse } from '@wia-nx/types';
 import Loading from './Loading';
 
 interface ImageCardProps {
@@ -50,17 +50,19 @@ const ImageCard = ({ image, imageName, isLocal = false }: ImageCardProps) => {
 	// render
 	if (!has) return <></>;
 	return (
-		<Box maxW='400px'>
-			<Center>
-				<Image
-					objectFit='cover'
-					src={imageSrc}
-					alt={`${imageName} image`}
-					fallback={<Loading />}
-					borderRadius='8'
-				/>
-			</Center>
-		</Box>
+		<Flex justifyContent='center'>
+			<Box maxW='400px'>
+				<Center>
+					<Image
+						objectFit='cover'
+						src={imageSrc}
+						alt={`${imageName} image`}
+						fallback={<Loading />}
+						borderRadius='8'
+					/>
+				</Center>
+			</Box>
+		</Flex>
 	);
 };
 

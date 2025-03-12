@@ -40,6 +40,130 @@ export class UserService {
 		private storage: StorageService
 	) {}
 
+	async getMe(userId: User['id']): Promise<GetUserResponse> {
+		return this.prisma.findUniqueUserWithImage(userId);
+	}
+
+	async getAllUsers(): Promise<GetAllUsersResponse> {
+		const rawUsers = await this.prisma.user.findMany({
+			...prismaSelectUser,
+		});
+		const users: GetAllUsersResponse = rawUsers.map<UserResponse>((user) =>
+			this.prisma.transformPrismaUserToUserResponse(user)
+		);
+		return users;
+	}
+
+	// post services
+
+	// patch services
+
+	async editUser(dto: EditUserService): Promise<EditUserResponse> {
+		const { userDto, userId, imageFile } = dto;
+		let { alias, firstName, lastName } = userDto;
+		if (alias) alias = alias.trim();
+		if (firstName) firstName = firstName.trim();
+		if (lastName) lastName = lastName.trim();
+
+		const oldUser = await this.prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				image: {
+					select: {
+						image: {
+							select: {
+								format: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!oldUser) throw new NotFoundException('user not found');
+
+		const upsertUserImageOptions = upsertUserImage(userDto);
+
+		const updatedUser = await this.prisma.user.update({
+			where: {
+				id: userId,
+			},
+			data: {
+				alias,
+				firstName,
+				lastName,
+				image: upsertUserImageOptions,
+			},
+			...prismaSelectUser,
+		});
+
+		let image: EditUserResponse['image'];
+
+		if (imageFile && updatedUser.image) {
+			if (oldUser.image) {
+				const deleteImageFileName = this.storage.getFirebaseImageString(
+					updatedUser.uid,
+					'user',
+					oldUser.image.image.format
+				);
+				await this.storage.deleteFile(deleteImageFileName);
+			}
+			image = {
+				src: await this.storage.uploadFile(
+					imageFile,
+					updatedUser.uid,
+					'user',
+					updatedUser.image.image.format
+				),
+			};
+		}
+
+		return { ...updatedUser, image };
+	}
+
+	async updatePassword(dto: UpdatePasswordService) {
+		// check confirm password is the same as new password
+		if (dto.newPassword !== dto.confirmPassword)
+			throw new PreconditionFailedException(
+				'new password and confirm password must match'
+			);
+
+		// check user
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: dto.userId,
+			},
+			select: {
+				hash: true,
+			},
+		});
+		if (!user) throw new NotFoundException('user not found');
+
+		// check user current password
+		const valid = await verify(user.hash, dto.currentPassword);
+		if (!valid) throw new ForbiddenException('incorrect credentials');
+
+		// check new password is not the same as current
+		const sameAsCurrent = await verify(user.hash, dto.newPassword);
+		if (sameAsCurrent)
+			throw new PreconditionFailedException(
+				'new password must be different from current'
+			);
+
+		// update password
+		const newPassword = await hash(dto.newPassword);
+		await this.prisma.user.update({
+			where: {
+				id: dto.userId,
+			},
+			data: {
+				hash: newPassword,
+			},
+		});
+	}
+
 	renameImagesToIds() {
 		// const mediaTypes: MediaType[] = ['anime', 'manga', 'videogame'];
 
@@ -815,128 +939,4 @@ export class UserService {
 	// }
 
 	// get services
-
-	async getMe(userId: User['id']): Promise<GetUserResponse> {
-		return this.prisma.findUniqueUserWithImage(userId);
-	}
-
-	async getAllUsers(): Promise<GetAllUsersResponse> {
-		const rawUsers = await this.prisma.user.findMany({
-			...prismaSelectUser,
-		});
-		const users: GetAllUsersResponse = rawUsers.map<UserResponse>((user) =>
-			this.prisma.transformPrismaUserToUserResponse(user)
-		);
-		return users;
-	}
-
-	// post services
-
-	// patch services
-
-	async editUser(dto: EditUserService): Promise<EditUserResponse> {
-		const { userDto, userId, imageFile } = dto;
-		let { alias, firstName, lastName } = userDto;
-		if (alias) alias = alias.trim();
-		if (firstName) firstName = firstName.trim();
-		if (lastName) lastName = lastName.trim();
-
-		const oldUser = await this.prisma.user.findUnique({
-			where: {
-				id: userId,
-			},
-			select: {
-				image: {
-					select: {
-						image: {
-							select: {
-								format: true,
-							},
-						},
-					},
-				},
-			},
-		});
-
-		if (!oldUser) throw new NotFoundException('user not found');
-
-		const upsertUserImageOptions = upsertUserImage(userDto);
-
-		const updatedUser = await this.prisma.user.update({
-			where: {
-				id: userId,
-			},
-			data: {
-				alias,
-				firstName,
-				lastName,
-				image: upsertUserImageOptions,
-			},
-			...prismaSelectUser,
-		});
-
-		let image: EditUserResponse['image'];
-
-		if (imageFile && updatedUser.image) {
-			if (oldUser.image) {
-				const deleteImageFileName = this.storage.getFirebaseImageString(
-					updatedUser.uid,
-					'user',
-					oldUser.image.image.format
-				);
-				await this.storage.deleteFile(deleteImageFileName);
-			}
-			image = {
-				src: await this.storage.uploadFile(
-					imageFile,
-					updatedUser.uid,
-					'user',
-					updatedUser.image.image.format
-				),
-			};
-		}
-
-		return { ...updatedUser, image };
-	}
-
-	async updatePassword(dto: UpdatePasswordService) {
-		// check confirm password is the same as new password
-		if (dto.newPassword !== dto.confirmPassword)
-			throw new PreconditionFailedException(
-				'new password and confirm password must match'
-			);
-
-		// check user
-		const user = await this.prisma.user.findUnique({
-			where: {
-				id: dto.userId,
-			},
-			select: {
-				hash: true,
-			},
-		});
-		if (!user) throw new NotFoundException('user not found');
-
-		// check user current password
-		const valid = await verify(user.hash, dto.currentPassword);
-		if (!valid) throw new ForbiddenException('incorrect credentials');
-
-		// check new password is not the same as current
-		const sameAsCurrent = await verify(user.hash, dto.newPassword);
-		if (sameAsCurrent)
-			throw new PreconditionFailedException(
-				'new password must be different from current'
-			);
-
-		// update password
-		const newPassword = await hash(dto.newPassword);
-		await this.prisma.user.update({
-			where: {
-				id: dto.userId,
-			},
-			data: {
-				hash: newPassword,
-			},
-		});
-	}
 }
