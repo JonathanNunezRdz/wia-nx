@@ -1,5 +1,5 @@
 import { Link } from '@chakra-ui/next-js';
-import { Avatar, Flex, Spinner } from '@chakra-ui/react';
+import { Avatar, Flex, Spinner, Tooltip } from '@chakra-ui/react';
 import { storage } from '@wia-client/src/store/api/firebase';
 import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 import { useAppSelector } from '@wia-client/src/store/hooks';
@@ -49,10 +49,11 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 				{LinkComponents}
 				<Link href='/user' me={4}>
 					<Flex flexDir='row' alignItems='center' gap='2'>
-						{user.alias}
 						{user.image ? (
 							<UserAvatar name={user.alias} image={user.image} />
-						) : null}
+						) : (
+							user.alias
+						)}
 					</Flex>
 				</Link>
 			</>
@@ -75,10 +76,12 @@ type UserAvatarProps = {
 
 function UserAvatar({ image, name }: UserAvatarProps) {
 	const [imageSrc, setImageSrc] = useState('');
+	const [imageLoading, setImageLoading] = useState(false);
 
 	useEffect(() => {
 		const getImage = async () => {
 			try {
+				setImageLoading(true);
 				const res = await getDownloadURL(ref(storage, image.src));
 				setImageSrc(res);
 			} catch (error) {
@@ -87,12 +90,19 @@ function UserAvatar({ image, name }: UserAvatarProps) {
 					ref(storage, 'static/Image-not-found.png')
 				);
 				setImageSrc(res);
+			} finally {
+				setImageLoading(false);
 			}
 		};
 		getImage();
 	}, [image]);
 
-	return <Avatar name={name} src={imageSrc} />;
+	if (imageLoading) return <Spinner size='lg' />;
+	return (
+		<Tooltip label={name}>
+			<Avatar name={name} src={imageSrc} ignoreFallback />
+		</Tooltip>
+	);
 }
 
 export default HeaderLinks;

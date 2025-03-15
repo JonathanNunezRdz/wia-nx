@@ -103,7 +103,13 @@ export function UpdatePasswordForm() {
 						</FormErrorMessage>
 					</FormControl>
 					<HStack gap={4}>
-						<Button type='submit' colorScheme='green'>
+						<Button
+							type='submit'
+							colorScheme='green'
+							isDisabled={!form.formState.isDirty}
+							isLoading={updatePasswordStatus.isLoading}
+							loadingText='loading'
+						>
 							update
 						</Button>
 						<Button type='button' onClick={() => form.reset()}>

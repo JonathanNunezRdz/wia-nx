@@ -8,7 +8,7 @@ import {
 import { useAppSelector } from '@wia-client/src/store/hooks';
 import { Control, Controller } from 'react-hook-form';
 
-import Loading from './Loading';
+import { Loading } from './Loading';
 import { useGetMeQuery, useGetMembersQuery } from '@wia-client/src/store/user';
 import { selectAuth } from '@wia-client/src/store/auth/authReducer';
 

@@ -17,6 +17,7 @@ type ImageInputProps = {
 	handleImageChange: ChangeImageHandler;
 	handleImageReset: () => void;
 	isLocal?: boolean;
+	imageIsLoading: boolean;
 };
 
 export default function ImageInput({
@@ -25,6 +26,7 @@ export default function ImageInput({
 	handleImageChange,
 	handleImageReset,
 	isLocal,
+	imageIsLoading,
 }: ImageInputProps) {
 	// react hooks
 	const [imageKey, setImageKey] = useState(0);
@@ -43,6 +45,7 @@ export default function ImageInput({
 					image={{ src: currentImage }}
 					imageName={imageName}
 					isLocal={isLocal}
+					imageIsLoading={imageIsLoading}
 				/>
 			) : (
 				<></>

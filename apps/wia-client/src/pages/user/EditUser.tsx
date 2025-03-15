@@ -1,3 +1,4 @@
+import { DevTool } from '@hookform/devtools';
 import {
 	Box,
 	Button,
@@ -15,9 +16,13 @@ import {
 	useEditUserMutation,
 	useGetMeQuery,
 } from '@wia-client/src/store';
-import { formatImageFileName, useImage } from '@wia-client/src/utils';
+import {
+	formatImageFileName,
+	setupImageFile,
+	useImage,
+} from '@wia-client/src/utils';
 import { EditUserDto } from '@wia-nx/types';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 
 export function EditUser() {
@@ -31,28 +36,33 @@ export function EditUser() {
 		imageFile,
 		imageFormat,
 		resetImage,
+		imageIsLoading,
 	} = useImage({ originalImage: meQuery.data?.image });
 	const {
 		register,
 		handleSubmit,
 		setValue,
-		watch,
+		reset,
 		formState: { isDirty, errors },
+		control,
 	} = useForm<EditUserDto>();
 
+	const formIsDirty = useMemo(() => {
+		if (meQuery.isSuccess) {
+			return !(meQuery.data.image?.src === currentImage);
+		}
+		return false;
+	}, [currentImage, isDirty, meQuery]);
+
 	const onSubmit = useCallback<SubmitHandler<EditUserDto>>(
-		(values) => {
+		async (values) => {
 			if (!meQuery.isSuccess) return;
-			if (imageFile) {
-				const format = imageFile.type.split('/').pop();
-				const fileName = formatImageFileName(meQuery.data.uid, format);
-				const sendImage = new File([imageFile], fileName, {
-					type: imageFile.type,
-				});
-				editUser({ dto: values, imageFile: sendImage });
-			} else {
-				editUser({ dto: values });
-			}
+			const sendImage = setupImageFile({
+				imageFile,
+				name: meQuery.data.uid,
+			});
+			await editUser({ dto: values, imageFile: sendImage });
+			reset();
 		},
 		[meQuery, imageFile, editUser]
 	);
@@ -133,20 +143,23 @@ export function EditUser() {
 						handleImageChange={handleImageChange}
 						handleImageReset={resetImage}
 						isLocal={currentImage !== meQuery.data.image?.src}
+						imageIsLoading={imageIsLoading}
 					/>
 
 					<HStack>
 						<Button
 							type='submit'
-							disabled={!isDirty}
+							isDisabled={!formIsDirty}
 							isLoading={editUserStatus.isLoading}
-							colorScheme={isDirty ? 'green' : 'gray'}
+							colorScheme={formIsDirty ? 'green' : 'gray'}
+							loadingText='loading'
 						>
 							update
 						</Button>
 					</HStack>
 				</VStack>
 			</form>
+			<DevTool control={control} />
 		</Box>
 	);
 }

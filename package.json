@@ -49,6 +49,7 @@
 		"tslib": "^2.3.0"
 	},
 	"devDependencies": {
+		"@hookform/devtools": "^4.3.3",
 		"@nestjs/schematics": "^10.0.1",
 		"@nestjs/testing": "^10.0.2",
 		"@nx/cypress": "16.8.1",

@@ -22,6 +22,7 @@ import {
 	formatImageFileName,
 	parseRTKError,
 	parseWaifuId,
+	setupImageFile,
 	useImage,
 } from '@wia-client/src/utils';
 import { EditWaifuDto } from '@wia-nx/types';
@@ -51,6 +52,7 @@ const EditWaifu = () => {
 		imageFile,
 		imageFormat,
 		resetImage,
+		imageIsLoading,
 	} = useImage();
 
 	// react-hook-form
@@ -59,11 +61,12 @@ const EditWaifu = () => {
 		handleSubmit,
 		setValue,
 		watch,
+		reset,
 		formState: { isDirty, errors },
 	} = useForm<EditWaifuDto>();
 
 	// std function
-	const onSubmit: SubmitHandler<EditWaifuDto> = (data) => {
+	const onSubmit: SubmitHandler<EditWaifuDto> = async (data) => {
 		console.log('submitting edit waifu');
 		if (!waifuQuery.isSuccess) return;
 
@@ -71,23 +74,12 @@ const EditWaifu = () => {
 			...data,
 			name: data.name?.trim(),
 		};
-
-		if (imageFile) {
-			const format = imageFile.type.split('/').pop();
-			const completeFileName = formatImageFileName(
-				newValues.name || waifuQuery.data.name,
-				format
-			);
-			const sendImage = new File([imageFile], completeFileName, {
-				type: imageFile.type,
-			});
-			editWaifu({ editDto: newValues, imageFile: sendImage });
-		} else {
-			const { imageFormat, ...rest } = newValues;
-			editWaifu({
-				editDto: rest,
-			});
-		}
+		const sendImage = setupImageFile({
+			imageFile,
+			name: newValues.name || waifuQuery.data.name,
+		});
+		await editWaifu({ editDto: newValues, imageFile: sendImage });
+		reset();
 	};
 
 	// effects
@@ -173,6 +165,7 @@ const EditWaifu = () => {
 							imageName={watch('name') || waifuQuery.data.name}
 							handleImageChange={handleImageChange}
 							handleImageReset={resetImage}
+							imageIsLoading={imageIsLoading}
 							isLocal={
 								currentImage !== waifuQuery.data.image?.src
 							}

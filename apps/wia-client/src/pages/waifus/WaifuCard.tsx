@@ -5,7 +5,7 @@ import { User } from '@prisma/client';
 import { useCardColor, WaifuLevelLabels } from '@wia-client/src/utils';
 import { WaifuResponse } from '@wia-nx/types';
 import ImageCard from '@wia-client/src/components/common/ImageCard';
-import Loading from '@wia-client/src/components/common/Loading';
+import { Loading } from '@wia-client/src/components/common/Loading';
 import WaifuActionButtons from './WaifuActionButtons';
 
 interface WaifuCardProps {

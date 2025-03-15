@@ -10,7 +10,6 @@ function getBaseUrl() {
 		);
 		return 'http://localhost:3333';
 	}
-	console.log(`using base url provided: ${baseUrl}`);
 	return baseUrl;
 }
 

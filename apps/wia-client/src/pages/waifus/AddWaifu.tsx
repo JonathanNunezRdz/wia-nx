@@ -22,6 +22,7 @@ import {
 	formatImageFileName,
 	parseMediaId,
 	parseRTKError,
+	setupImageFile,
 	useImage,
 } from '@wia-client/src/utils';
 import { CreateWaifuDto } from '@wia-nx/types';
@@ -49,6 +50,7 @@ export default function AddWaifu() {
 		handleImageChange,
 		imageFormat,
 		resetImage,
+		imageIsLoading,
 	} = useImage();
 
 	// react-hook-form
@@ -57,6 +59,7 @@ export default function AddWaifu() {
 		handleSubmit,
 		setValue,
 		watch,
+		reset,
 		formState: { errors, isDirty },
 	} = useForm<CreateWaifuDto>({
 		defaultValues: {
@@ -67,30 +70,15 @@ export default function AddWaifu() {
 	});
 
 	// std functions
-	const onSubmit: SubmitHandler<CreateWaifuDto> = (data) => {
+	const onSubmit: SubmitHandler<CreateWaifuDto> = async (data) => {
 		console.log('submitting create waifu');
 		const newValues: CreateWaifuDto = {
 			...data,
 			name: data.name.trim(),
 		};
-
-		if (imageFile) {
-			const format = imageFile.type.split('/').pop();
-			const completeFileName = formatImageFileName(
-				newValues.name,
-				format
-			);
-			const sendImage = new File([imageFile], completeFileName, {
-				type: imageFile.type,
-			});
-			addWaifu({
-				waifuDto: newValues,
-				imageFile: sendImage,
-			});
-		} else {
-			const { imageFormat, ...rest } = newValues;
-			addWaifu({ waifuDto: rest });
-		}
+		const sendImage = setupImageFile({ imageFile, name: newValues.name });
+		await addWaifu({ waifuDto: newValues, imageFile: sendImage });
+		reset();
 	};
 
 	// effects
@@ -176,6 +164,7 @@ export default function AddWaifu() {
 							imageName={watch('name')}
 							handleImageChange={handleImageChange}
 							handleImageReset={resetImage}
+							imageIsLoading={imageIsLoading}
 							isLocal
 						/>
 

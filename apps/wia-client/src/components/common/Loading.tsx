@@ -1,9 +1,11 @@
-import { Box, Spinner } from '@chakra-ui/react';
+import { Box, BoxProps, Spinner } from '@chakra-ui/react';
 
-const Loading = () => (
-	<Box key='image-loading'>
-		<Spinner />
-	</Box>
-);
+type LoadingProps = BoxProps;
 
-export default Loading;
+export function Loading({ ...props }: LoadingProps) {
+	return (
+		<Box key='image-loading' {...props}>
+			<Spinner />
+		</Box>
+	);
+}

@@ -183,3 +183,15 @@ export function parseRTKError(
 		return JSON.stringify(error);
 	}
 }
+
+type SetupImageFileArgs = {
+	imageFile: File | undefined;
+	name: string;
+};
+
+export function setupImageFile({ imageFile, name }: SetupImageFileArgs) {
+	if (typeof imageFile === 'undefined') return;
+	const format = imageFile.type.split('/').pop();
+	const fileName = formatImageFileName(name, format);
+	return new File([imageFile], fileName, { type: imageFile.type });
+}

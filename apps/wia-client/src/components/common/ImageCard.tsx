@@ -1,19 +1,25 @@
-import { Box, Center, Flex, Image } from '@chakra-ui/react';
+import { Box, Center, Fade, Flex, Image } from '@chakra-ui/react';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 
 import { storage } from '@wia-client/src/store/api/firebase';
 import { MediaResponse, WaifuResponse } from '@wia-nx/types';
-import Loading from './Loading';
+import { Loading } from './Loading';
 
 interface ImageCardProps {
 	image: MediaResponse['image'] | WaifuResponse['image'];
 	imageName: string;
 	imageRoot?: string | undefined;
 	isLocal?: boolean;
+	imageIsLoading?: boolean;
 }
 
-const ImageCard = ({ image, imageName, isLocal = false }: ImageCardProps) => {
+const ImageCard = ({
+	image,
+	imageName,
+	imageIsLoading = false,
+	isLocal = false,
+}: ImageCardProps) => {
 	// react hooks
 	const [imageSrc, setImageSrc] = useState('');
 
@@ -44,22 +50,25 @@ const ImageCard = ({ image, imageName, isLocal = false }: ImageCardProps) => {
 		getImage();
 	}, [image, isLocal]);
 
-	// constants
-	const has = Boolean(image);
-
 	// render
-	if (!has) return <></>;
+	if (!Boolean(image)) return <></>;
 	return (
 		<Flex justifyContent='center'>
 			<Box maxW='400px'>
 				<Center>
-					<Image
-						objectFit='cover'
-						src={imageSrc}
-						alt={`${imageName} image`}
-						fallback={<Loading />}
-						borderRadius='8'
-					/>
+					{/* {imageIsLoading ? (
+						<Loading />
+					) : ( */}
+					<Fade in={!imageIsLoading}>
+						<Image
+							objectFit='cover'
+							src={imageSrc}
+							alt={`${imageName} image`}
+							fallback={<Loading />}
+							borderRadius='8'
+						/>
+					</Fade>
+					{/* )} */}
 				</Center>
 			</Box>
 		</Flex>

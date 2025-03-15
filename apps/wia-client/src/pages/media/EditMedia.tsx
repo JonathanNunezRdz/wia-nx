@@ -27,6 +27,7 @@ import {
 	prepareDate,
 	mediaLabel,
 	useImage,
+	setupImageFile,
 } from '@wia-client/src/utils';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
@@ -53,6 +54,7 @@ const EditMedia = () => {
 		imageFormat,
 		handleImageChange,
 		resetImage,
+		imageIsLoading,
 	} = useImage();
 
 	// react-hook-form
@@ -61,6 +63,7 @@ const EditMedia = () => {
 		handleSubmit,
 		setValue,
 		watch,
+		reset,
 		formState: { errors, isDirty },
 	} = useForm<EditMediaDto>({
 		defaultValues: {
@@ -72,7 +75,7 @@ const EditMedia = () => {
 	});
 
 	// functions
-	const onSubmit: SubmitHandler<EditMediaDto> = (data) => {
+	const onSubmit: SubmitHandler<EditMediaDto> = async (data) => {
 		console.log('submitting edit media');
 		if (!mediaQuery.isSuccess) return;
 		const { data: mediaToEdit } = mediaQuery;
@@ -82,21 +85,12 @@ const EditMedia = () => {
 			knownAt: data.knownAt && prepareDate(data.knownAt),
 			title: data.title?.trim(),
 		};
-
-		if (imageFile) {
-			const format = imageFile.type.split('/').pop();
-			const completeFileName = formatImageFileName(
-				newValues.title || mediaToEdit.title,
-				format
-			);
-			const sendImage = new File([imageFile], completeFileName, {
-				type: imageFile.type,
-			});
-			editMedia({ editDto: newValues, imageFile: sendImage });
-		} else {
-			const { imageFormat, ...rest } = newValues;
-			editMedia({ editDto: rest });
-		}
+		const sendImage = setupImageFile({
+			imageFile,
+			name: newValues.title || mediaToEdit.title,
+		});
+		await editMedia({ editDto: newValues, imageFile: sendImage });
+		reset();
 	};
 
 	// effects
@@ -179,6 +173,7 @@ const EditMedia = () => {
 							imageName={watch('title') || ''}
 							handleImageChange={handleImageChange}
 							handleImageReset={resetImage}
+							imageIsLoading={imageIsLoading}
 							isLocal={
 								currentImage !== mediaQuery.data.image?.src
 							}

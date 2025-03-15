@@ -25,6 +25,7 @@ import {
 	prepareDate,
 	useImage,
 	mediaLabel,
+	setupImageFile,
 } from '@wia-client/src/utils';
 import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
@@ -47,15 +48,17 @@ const AddMedia = () => {
 		imageFormat,
 		handleImageChange,
 		resetImage,
+		imageIsLoading,
 	} = useImage();
 
 	// react-hook-form
 	const {
 		register,
 		handleSubmit,
-		formState: { errors, isDirty },
 		watch,
 		setValue,
+		reset,
+		formState: { errors, isDirty },
 	} = useForm<CreateMediaDto>({
 		defaultValues: {
 			title: '',
@@ -74,22 +77,9 @@ const AddMedia = () => {
 			knownAt: prepareDate(data.knownAt),
 			title: data.title.trim(),
 		};
-
-		if (imageFile) {
-			const format = imageFile.type.split('/').pop();
-			const completeFileName = formatImageFileName(
-				newValues.title,
-				format
-			);
-			const sendImage = new File([imageFile], completeFileName, {
-				type: imageFile.type,
-			});
-			addMedia({ mediaDto: newValues, imageFile: sendImage });
-		} else {
-			// remove imageFormat if undefined
-			const { imageFormat, ...rest } = newValues;
-			addMedia({ mediaDto: rest });
-		}
+		const sendImage = setupImageFile({ imageFile, name: newValues.title });
+		await addMedia({ mediaDto: newValues, imageFile: sendImage });
+		reset();
 	};
 
 	// effects
@@ -158,6 +148,7 @@ const AddMedia = () => {
 							imageName={watch('title')}
 							handleImageChange={handleImageChange}
 							handleImageReset={resetImage}
+							imageIsLoading={imageIsLoading}
 							isLocal
 						/>
 
