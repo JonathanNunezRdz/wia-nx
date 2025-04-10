@@ -68,6 +68,7 @@ export const prismaSelectMedia = Prisma.validator<Prisma.MediaDefaultArgs>()({
 					select: {
 						id: true,
 						alias: true,
+						uid: true,
 						image: {
 							select: {
 								image: {

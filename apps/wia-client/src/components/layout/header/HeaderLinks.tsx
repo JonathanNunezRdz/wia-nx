@@ -1,12 +1,9 @@
 import { Link } from '@chakra-ui/next-js';
-import { Avatar, Flex, Spinner, Tooltip } from '@chakra-ui/react';
-import { storage } from '@wia-client/src/store/api/firebase';
-import { selectAuth } from '@wia-client/src/store/auth/authReducer';
-import { useAppSelector } from '@wia-client/src/store/hooks';
+import { Flex, Spinner } from '@chakra-ui/react';
+import { useGetLoggedStatusQuery } from '@wia-client/src/store';
 import { useGetMeQuery } from '@wia-client/src/store/user';
-import type { MyImage } from '@wia-nx/types';
-import { getDownloadURL, ref } from 'firebase/storage';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { UserAvatar } from '../../common/UserAvatar';
 
 interface IHeaderLinksProps {
 	links: string[];
@@ -14,13 +11,9 @@ interface IHeaderLinksProps {
 
 function HeaderLinks({ links }: IHeaderLinksProps) {
 	// rtk hooks
-	const { isLoggedIn } = useAppSelector(selectAuth);
-	const {
-		data: user,
-		isFetching,
-		isSuccess,
-	} = useGetMeQuery(undefined, {
-		skip: !isLoggedIn,
+	const loggedStatus = useGetLoggedStatusQuery();
+	const meQuery = useGetMeQuery(undefined, {
+		skip: !loggedStatus.isSuccess,
 	});
 
 	// sub-components
@@ -35,7 +28,7 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 	}, [links]);
 
 	// render
-	if (isLoggedIn && isFetching)
+	if (meQuery.isFetching)
 		return (
 			<>
 				{LinkComponents}
@@ -43,16 +36,19 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 			</>
 		);
 
-	if (isLoggedIn && isSuccess)
+	if (meQuery.isSuccess)
 		return (
 			<>
 				{LinkComponents}
 				<Link href='/user' me={4}>
 					<Flex flexDir='row' alignItems='center' gap='2'>
-						{user.image ? (
-							<UserAvatar name={user.alias} image={user.image} />
+						{meQuery.data.image ? (
+							<UserAvatar
+								name={meQuery.data.alias}
+								image={meQuery.data.image}
+							/>
 						) : (
-							user.alias
+							meQuery.data.alias
 						)}
 					</Flex>
 				</Link>
@@ -66,42 +62,6 @@ function HeaderLinks({ links }: IHeaderLinksProps) {
 				sign in
 			</Link>
 		</>
-	);
-}
-
-type UserAvatarProps = {
-	image: MyImage;
-	name: string;
-};
-
-function UserAvatar({ image, name }: UserAvatarProps) {
-	const [imageSrc, setImageSrc] = useState('');
-	const [imageLoading, setImageLoading] = useState(false);
-
-	useEffect(() => {
-		const getImage = async () => {
-			try {
-				setImageLoading(true);
-				const res = await getDownloadURL(ref(storage, image.src));
-				setImageSrc(res);
-			} catch (error) {
-				console.error(error);
-				const res = await getDownloadURL(
-					ref(storage, 'static/Image-not-found.png')
-				);
-				setImageSrc(res);
-			} finally {
-				setImageLoading(false);
-			}
-		};
-		getImage();
-	}, [image]);
-
-	if (imageLoading) return <Spinner size='lg' />;
-	return (
-		<Tooltip label={name}>
-			<Avatar name={name} src={imageSrc} ignoreFallback />
-		</Tooltip>
 	);
 }
 

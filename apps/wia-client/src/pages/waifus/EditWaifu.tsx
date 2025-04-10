@@ -1,6 +1,3 @@
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
 import {
 	Button,
 	FormControl,
@@ -11,27 +8,28 @@ import {
 	Select,
 	VStack,
 } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 
+import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
+import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
+import WaifuLevelOptions from '@wia-client/src/components/common/WaifuLevelOptions';
+import WaifuMediaTitleOptions from '@wia-client/src/components/common/WaifuMediaTitleOptions';
 import {
-	useAppSelector,
-	selectAuth,
 	useEditWaifuMutation,
 	useGetEditWaifuQuery,
+	useGetLoggedStatusQuery,
 } from '@wia-client/src/store';
 import {
-	formatImageFileName,
 	parseRTKError,
 	parseWaifuId,
 	setupImageFile,
 	useImage,
 } from '@wia-client/src/utils';
 import { EditWaifuDto } from '@wia-nx/types';
-import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
-import WaifuLevelOptions from '@wia-client/src/components/common/WaifuLevelOptions';
-import WaifuMediaTitleOptions from '@wia-client/src/components/common/WaifuMediaTitleOptions';
-import ImageInput from '@wia-client/src/components/common/ImageInput';
 
 const EditWaifu = () => {
 	// next hooks
@@ -39,9 +37,9 @@ const EditWaifu = () => {
 	const waifuId = parseWaifuId(router.query.waifuIdString);
 
 	// redux hooks
-	const { isLoggedIn } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 	const waifuQuery = useGetEditWaifuQuery(waifuId, {
-		skip: !isLoggedIn || !router.isReady || waifuId === '',
+		skip: !loggedStatus.isSuccess || !router.isReady || waifuId === '',
 	});
 	const [editWaifu, editWaifuState] = useEditWaifuMutation();
 

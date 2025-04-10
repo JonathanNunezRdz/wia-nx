@@ -9,11 +9,11 @@ import PageTitle from '@wia-client/src/components/common/PageTitle';
 import Body from '@wia-client/src/components/layout/Body';
 import {
 	changeWaifuPage,
-	selectAuth,
 	selectWaifuFilter,
 	useAppDispatch,
 	useAppSelector,
 	useGetAllWaifusQuery,
+	useGetLoggedStatusQuery,
 	useGetMeQuery,
 } from '@wia-client/src/store';
 import { GetAllWaifusDto, HttpError } from '@wia-nx/types';
@@ -23,9 +23,11 @@ import WaifuFilterOptions from './WaifuFilterOptions';
 function Waifus() {
 	// rtk hooks
 	const dispatch = useAppDispatch();
-	const { isLoggedIn } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 	const appliedFilters = useAppSelector(selectWaifuFilter);
-	const userQuery = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const userQuery = useGetMeQuery(undefined, {
+		skip: !loggedStatus.isSuccess,
+	});
 	const waifuQuery = useGetAllWaifusQuery(appliedFilters);
 
 	// functions
@@ -48,7 +50,7 @@ function Waifus() {
 						key={waifu.id}
 						waifu={waifu}
 						ownId={userQuery.isSuccess ? userQuery.data.id : ''}
-						isLoggedIn={isLoggedIn}
+						isLoggedIn={loggedStatus.isSuccess}
 					/>
 				));
 			return (
@@ -82,14 +84,14 @@ function Waifus() {
 			}
 		}
 		return <></>;
-	}, [waifuQuery, userQuery, isLoggedIn]);
+	}, [waifuQuery, userQuery, loggedStatus.isSuccess]);
 
 	// render
 	return (
 		<Body h>
 			<VStack w='full' spacing={4}>
 				<PageTitle title='waifus'>
-					{isLoggedIn && (
+					{loggedStatus.isSuccess && (
 						<LinkButton
 							pathname='/waifus/add'
 							iconButtonProps={{

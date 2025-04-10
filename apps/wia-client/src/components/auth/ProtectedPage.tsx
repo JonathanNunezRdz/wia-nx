@@ -2,8 +2,7 @@ import { Center, Spinner } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { ReactNode, useEffect } from 'react';
 
-import { selectAuth } from '@wia-client/src/store/auth';
-import { useAppSelector } from '../../store/hooks';
+import { useGetLoggedStatusQuery } from '@wia-client/src/store/auth';
 import Body from '../layout/Body';
 
 interface ProtectedPageProps {
@@ -23,10 +22,10 @@ function ProtectedPage({
 	const router = useRouter();
 
 	// rtk hooks
-	const { isLoggedIn, checkedToken } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 
 	useEffect(() => {
-		if (!isLoggedIn && checkedToken && router.isReady) {
+		if (loggedStatus.isError && router.isReady) {
 			router.push({
 				pathname: '/signin',
 				query: {
@@ -34,9 +33,9 @@ function ProtectedPage({
 				},
 			});
 		}
-	}, [isLoggedIn, router, originalUrl, checkedToken]);
+	}, [loggedStatus, router, originalUrl]);
 
-	if (!isLoggedIn) {
+	if (!loggedStatus.isSuccess) {
 		return (
 			<Center>
 				<Spinner />

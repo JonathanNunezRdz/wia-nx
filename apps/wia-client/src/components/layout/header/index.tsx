@@ -1,7 +1,6 @@
 import { Link } from '@chakra-ui/next-js';
 import { Box, Flex, Heading } from '@chakra-ui/react';
 import HeaderLinks from './HeaderLinks';
-import ThemeToggle from './ThemeToggle';
 
 const links = ['media', 'waifus', 'trades'];
 
@@ -13,7 +12,6 @@ function Header() {
 			</Heading>
 			<Box ms='auto' alignItems='center' display='flex'>
 				<HeaderLinks links={links} />
-				<ThemeToggle />
 			</Box>
 		</Flex>
 	);

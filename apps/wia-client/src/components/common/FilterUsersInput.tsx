@@ -5,12 +5,11 @@ import {
 	FormLabel,
 	SimpleGrid,
 } from '@chakra-ui/react';
-import { useAppSelector } from '@wia-client/src/store/hooks';
 import { Control, Controller } from 'react-hook-form';
 
-import { Loading } from './Loading';
+import { useGetLoggedStatusQuery } from '@wia-client/src/store';
 import { useGetMeQuery, useGetMembersQuery } from '@wia-client/src/store/user';
-import { selectAuth } from '@wia-client/src/store/auth/authReducer';
+import { Loading } from './Loading';
 
 interface FilterUsersInputProps {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,12 +18,12 @@ interface FilterUsersInputProps {
 
 const FilterUsersInput = ({ control }: FilterUsersInputProps) => {
 	// reducers
-	const { isLoggedIn } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 	const {
 		data: user,
 		isFetching: userFetching,
 		isSuccess: userSuccess,
-	} = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	} = useGetMeQuery(undefined, { skip: !loggedStatus.isSuccess });
 	const {
 		data: members,
 		isFetching: membersFetching,

@@ -5,7 +5,7 @@ import LinkButton from '@wia-client/src/components/common/LinkButton';
 import { Loading } from '@wia-client/src/components/common/Loading';
 import PageTitle from '@wia-client/src/components/common/PageTitle';
 import Body from '@wia-client/src/components/layout/Body';
-import { selectAuth, useGetMeQuery } from '@wia-client/src/store';
+import { useGetLoggedStatusQuery, useGetMeQuery } from '@wia-client/src/store';
 import { useAppDispatch, useAppSelector } from '@wia-client/src/store/hooks';
 import { useGetTradesQuery } from '@wia-client/src/store/trade/tradeApi';
 import {
@@ -20,8 +20,10 @@ import TradeCard from './TradeCard';
 function Trades() {
 	// rtk hooks
 	const dispatch = useAppDispatch();
-	const { isLoggedIn } = useAppSelector(selectAuth);
-	const userQuery = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const loggedStatus = useGetLoggedStatusQuery();
+	const userQuery = useGetMeQuery(undefined, {
+		skip: !loggedStatus.isSuccess,
+	});
 	const appliedFilters = useAppSelector(selectTradeFilter);
 	const tradeQuery = useGetTradesQuery(appliedFilters);
 
@@ -80,7 +82,7 @@ function Trades() {
 			<NextSeo title='trades' />
 			<VStack w='full' spacing={4}>
 				<PageTitle title='trades'>
-					{isLoggedIn && (
+					{loggedStatus.isSuccess && (
 						<LinkButton
 							pathname='/trades/add'
 							iconButtonProps={{

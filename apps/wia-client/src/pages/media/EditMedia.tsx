@@ -1,39 +1,37 @@
 import {
-	VStack,
-	FormControl,
-	FormLabel,
-	Input,
-	FormErrorMessage,
-	Select,
-	HStack,
 	Button,
+	FormControl,
+	FormErrorMessage,
+	FormLabel,
+	HStack,
+	Input,
+	Select,
+	VStack,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { EditMediaDto } from '@wia-nx/types';
+import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
+import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
+import MediaTypeOptions from '@wia-client/src/components/common/MediaTypeOptions';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
 import {
-	useAppSelector,
-	selectAuth,
 	useEditMediaMutation,
 	useGetEditMediaQuery,
+	useGetLoggedStatusQuery,
 } from '@wia-client/src/store';
 import {
 	formatDate,
-	formatImageFileName,
+	mediaLabel,
 	parseMediaId,
 	parseRTKError,
 	prepareDate,
-	mediaLabel,
-	useImage,
 	setupImageFile,
+	useImage,
 } from '@wia-client/src/utils';
-import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
-import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
-import MediaTypeOptions from '@wia-client/src/components/common/MediaTypeOptions';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import ImageInput from '@wia-client/src/components/common/ImageInput';
+import { EditMediaDto } from '@wia-nx/types';
 
 const EditMedia = () => {
 	// next hooks
@@ -41,9 +39,9 @@ const EditMedia = () => {
 	const mediaId = parseMediaId(router.query.mediaIdString);
 
 	// rtk hooks
-	const { isLoggedIn } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 	const mediaQuery = useGetEditMediaQuery(mediaId, {
-		skip: !isLoggedIn && !router.isReady,
+		skip: !loggedStatus.isSuccess && !router.isReady,
 	});
 	const [editMedia, editMediaState] = useEditMediaMutation();
 

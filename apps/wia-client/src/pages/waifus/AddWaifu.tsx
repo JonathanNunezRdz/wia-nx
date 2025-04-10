@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import {
 	Button,
 	FormControl,
@@ -9,29 +8,28 @@ import {
 	Select,
 	VStack,
 } from '@chakra-ui/react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 
+import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
+import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
+import WaifuLevelOptions from '@wia-client/src/components/common/WaifuLevelOptions';
+import WaifuMediaTitleOptions from '@wia-client/src/components/common/WaifuMediaTitleOptions';
 import {
-	selectAuth,
-	useAppSelector,
-	useGetMediaTitlesQuery,
 	useAddWaifuMutation,
+	useGetLoggedStatusQuery,
+	useGetMediaTitlesQuery,
 } from '@wia-client/src/store';
 import {
-	formatImageFileName,
 	parseMediaId,
 	parseRTKError,
 	setupImageFile,
 	useImage,
 } from '@wia-client/src/utils';
 import { CreateWaifuDto } from '@wia-nx/types';
-import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
-import WaifuLevelOptions from '@wia-client/src/components/common/WaifuLevelOptions';
-import WaifuMediaTitleOptions from '@wia-client/src/components/common/WaifuMediaTitleOptions';
-import ImageInput from '@wia-client/src/components/common/ImageInput';
 
 export default function AddWaifu() {
 	// next hooks
@@ -39,8 +37,11 @@ export default function AddWaifu() {
 	const mediaId = parseMediaId(router.query.mediaId);
 
 	// rtk hooks
-	const { isLoggedIn } = useAppSelector(selectAuth);
-	const mediaTitlesQuery = useGetMediaTitlesQuery({}, { skip: !isLoggedIn });
+	const loggedStatus = useGetLoggedStatusQuery();
+	const mediaTitlesQuery = useGetMediaTitlesQuery(
+		{},
+		{ skip: !loggedStatus.isSuccess }
+	);
 	const [addWaifu, addWaifuState] = useAddWaifuMutation();
 
 	// custom hooks
@@ -104,7 +105,7 @@ export default function AddWaifu() {
 		}
 	}, [imageFormat, setValue]);
 
-	if (!isLoggedIn || !mediaTitlesQuery.isSuccess) return <></>;
+	if (!loggedStatus.isSuccess || !mediaTitlesQuery.isSuccess) return <></>;
 
 	return (
 		<ProtectedPage originalUrl='/waifus/add'>

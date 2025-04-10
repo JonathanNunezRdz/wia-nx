@@ -3,11 +3,9 @@ import type { FC } from 'react';
 
 import PageTitle from '@wia-client/src/components/common/PageTitle';
 import {
-	selectAuth,
-	signOut,
-	useAppDispatch,
-	useAppSelector,
+	useGetLoggedStatusQuery,
 	useGetMeQuery,
+	useSignOutMutation,
 } from '@wia-client/src/store';
 import ProtectedPage from '../../components/auth/ProtectedPage';
 import { EditUser } from './EditUser';
@@ -15,12 +13,12 @@ import { UpdatePasswordForm } from './UpdatePasswordForm';
 
 const User: FC = () => {
 	// rtk hooks
-	const dispatch = useAppDispatch();
-	const { isLoggedIn } = useAppSelector(selectAuth);
-	const userQuery = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const loggedStatus = useGetLoggedStatusQuery();
+	const [signOut] = useSignOutMutation();
+	const meQuery = useGetMeQuery(undefined, { skip: !loggedStatus.isSuccess });
 
-	const handleSignOut = () => {
-		dispatch(signOut());
+	const handleSignOut = async () => {
+		await signOut();
 	};
 
 	return (
@@ -28,8 +26,8 @@ const User: FC = () => {
 			<VStack w='full' spacing={4}>
 				<PageTitle
 					title={`account - ${
-						userQuery.isSuccess
-							? userQuery.data.alias
+						meQuery.isSuccess
+							? meQuery.data.alias
 							: 'loading user...'
 					}`}
 				>

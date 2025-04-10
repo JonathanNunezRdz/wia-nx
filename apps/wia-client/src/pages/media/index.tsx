@@ -9,10 +9,10 @@ import PageTitle from '@wia-client/src/components/common/PageTitle';
 import Body from '@wia-client/src/components/layout/Body';
 import {
 	changeMediaPage,
-	selectAuth,
 	selectMediaFilter,
 	useAppDispatch,
 	useAppSelector,
+	useGetLoggedStatusQuery,
 	useGetMeQuery,
 	useGetMediaQuery,
 } from '@wia-client/src/store';
@@ -23,10 +23,10 @@ import MediaFilterOptions from './MediaFilterOptions';
 function Media() {
 	// rtk hooks
 	const dispatch = useAppDispatch();
-	const { isLoggedIn } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 	const appliedFilters = useAppSelector(selectMediaFilter);
 	const user = useGetMeQuery(undefined, {
-		skip: !isLoggedIn,
+		skip: !loggedStatus.isSuccess,
 	});
 	const mediaQuery = useGetMediaQuery(appliedFilters);
 
@@ -50,7 +50,7 @@ function Media() {
 						key={elem.id}
 						media={elem}
 						ownId={user.isSuccess ? user.data.id : ''}
-						isLoggedIn={isLoggedIn}
+						isLoggedIn={loggedStatus.isSuccess}
 					/>
 				));
 			return (
@@ -84,14 +84,14 @@ function Media() {
 			}
 		}
 		return <></>;
-	}, [mediaQuery, user, isLoggedIn]);
+	}, [mediaQuery, user, loggedStatus.isSuccess]);
 
 	// render
 	return (
 		<Body h>
 			<VStack w='full' spacing={4}>
 				<PageTitle title='media'>
-					{isLoggedIn && (
+					{loggedStatus.isSuccess && (
 						<LinkButton
 							pathname='/media/add'
 							iconButtonProps={{

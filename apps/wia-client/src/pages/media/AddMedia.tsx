@@ -1,44 +1,42 @@
-import { useEffect } from 'react';
 import {
 	Button,
-	HStack,
-	VStack,
 	FormControl,
-	FormLabel,
-	Input,
 	FormErrorMessage,
+	FormLabel,
+	HStack,
+	Input,
 	Select,
+	VStack,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
+import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
+import ImageInput from '@wia-client/src/components/common/ImageInput';
+import MediaTypeOptions from '@wia-client/src/components/common/MediaTypeOptions';
+import PageTitle from '@wia-client/src/components/common/PageTitle';
 import {
 	useAddMediaMutation,
-	useAppSelector,
-	selectAuth,
+	useGetLoggedStatusQuery,
 } from '@wia-client/src/store';
-import { CreateMediaDto } from '@wia-nx/types';
 import {
 	formatDate,
-	formatImageFileName,
+	mediaLabel,
 	parseRTKError,
 	prepareDate,
-	useImage,
-	mediaLabel,
 	setupImageFile,
+	useImage,
 } from '@wia-client/src/utils';
-import ProtectedPage from '@wia-client/src/components/auth/ProtectedPage';
-import PageTitle from '@wia-client/src/components/common/PageTitle';
-import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
-import MediaTypeOptions from '@wia-client/src/components/common/MediaTypeOptions';
-import ImageInput from '@wia-client/src/components/common/ImageInput';
+import { CreateMediaDto } from '@wia-nx/types';
 
 const AddMedia = () => {
 	// next hooks
 	const router = useRouter();
 
 	// rtk hooks
-	const { isLoggedIn } = useAppSelector(selectAuth);
+	const loggedStatus = useGetLoggedStatusQuery();
 	const [addMedia, addMediaState] = useAddMediaMutation();
 
 	// custom hooks
@@ -95,7 +93,7 @@ const AddMedia = () => {
 		}
 	}, [imageFormat, setValue]);
 
-	if (!isLoggedIn) return <></>;
+	if (!loggedStatus.isSuccess) return <></>;
 
 	return (
 		<ProtectedPage originalUrl='/media/add'>

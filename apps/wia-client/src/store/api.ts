@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '.';
-import { customParamsSerializer } from '../utils';
+import { customParamsSerializer, validateJWT } from '../utils';
 
 function getBaseUrl() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -16,10 +15,11 @@ function getBaseUrl() {
 export const baseApi = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: `${getBaseUrl()}/api`,
-		prepareHeaders: (headers, { getState }) => {
-			const token = (getState() as RootState).auth.token;
-			if (token) {
-				headers.set('Authorization', `Bearer ${token}`);
+		prepareHeaders: async (headers, api) => {
+			const status = validateJWT();
+			if (status.valid) {
+				console.log('set token in headers');
+				headers.set('Authorization', `Bearer ${status.jwt}`);
 			}
 			return headers;
 		},

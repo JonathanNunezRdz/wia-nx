@@ -1,10 +1,17 @@
 import { Box, Center, Fade, Flex, Image } from '@chakra-ui/react';
-import { getDownloadURL, ref } from 'firebase/storage';
+import {
+	getDownloadURL,
+	ref,
+	StorageError,
+	StorageErrorCode,
+	StorageReference,
+} from 'firebase/storage';
 import { useEffect, useState } from 'react';
 
 import { storage } from '@wia-client/src/store/api/firebase';
 import { MediaResponse, WaifuResponse } from '@wia-nx/types';
 import { Loading } from './Loading';
+import { FirebaseError } from 'firebase/app';
 
 interface ImageCardProps {
 	image: MediaResponse['image'] | WaifuResponse['image'];
@@ -38,11 +45,22 @@ const ImageCard = ({
 						);
 						setImageSrc(res);
 					} catch (error) {
-						console.error(error);
-						const res = await getDownloadURL(
-							ref(storage, 'static/Image-not-found.png')
-						);
-						setImageSrc(res);
+						if (
+							error instanceof FirebaseError &&
+							error.code === 'storage/object-not-found'
+						) {
+							console.log(
+								'ref for:',
+								image.src,
+								'not found, using dummy image'
+							);
+							const res = await getDownloadURL(
+								ref(storage, 'static/Image-not-found.png')
+							);
+							setImageSrc(res);
+						} else {
+							console.log(error);
+						}
 					}
 				}
 			}

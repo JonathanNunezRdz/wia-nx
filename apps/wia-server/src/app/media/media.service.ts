@@ -53,7 +53,7 @@ export class MediaService {
 		const rawMedias = await this.prisma.media.findMany(input);
 
 		const medias: GetMediaResponse['medias'] = rawMedias.map((media) => {
-			let image: GetMediaResponse['medias'][0]['image'];
+			let image: GetMediaResponse['medias'][number]['image'];
 			if (media.image) {
 				image = {
 					src: this.storage.getFirebaseImageString(
@@ -67,11 +67,22 @@ export class MediaService {
 			return {
 				...media,
 				knownBy: media.knownBy.map((user) => {
+					let userImage: GetMediaResponse['medias'][number]['knownBy'][number]['user']['image'];
+					if (user.user.image) {
+						userImage = {
+							src: this.storage.getFirebaseImageString(
+								user.user.uid,
+								'user',
+								user.user.image.image.format
+							),
+						};
+					}
 					return {
 						...user,
 						user: {
 							id: user.user.id,
 							alias: user.user.alias,
+							image: userImage,
 						},
 					};
 				}),
@@ -267,7 +278,7 @@ export class MediaService {
 
 		const waifus: GetMediaWaifusResponse['media']['waifus'] =
 			rawMedia.waifus.map((waifu) => {
-				let image: GetMediaWaifusResponse['media']['waifus'][0]['image'];
+				let image: GetMediaWaifusResponse['media']['waifus'][number]['image'];
 				if (waifu.image) {
 					image = {
 						src: this.storage.getFirebaseImageString(

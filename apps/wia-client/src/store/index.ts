@@ -1,6 +1,5 @@
 import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit';
 import { baseApi } from './api';
-import authReducer from './auth/authReducer';
 import mediaReducer from './media/mediaReducer';
 import { tradeReducer } from './trade/tradeReducer';
 import waifuReducer from './waifu/waifuReducer';
@@ -13,7 +12,6 @@ export * from './waifu';
 
 export const store = configureStore({
 	reducer: {
-		auth: authReducer,
 		media: mediaReducer,
 		waifu: waifuReducer,
 		trade: tradeReducer,

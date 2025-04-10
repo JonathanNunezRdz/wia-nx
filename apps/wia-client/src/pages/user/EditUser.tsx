@@ -11,23 +11,18 @@ import {
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
 import ImageInput from '@wia-client/src/components/common/ImageInput';
 import {
-	selectAuth,
-	useAppSelector,
 	useEditUserMutation,
+	useGetLoggedStatusQuery,
 	useGetMeQuery,
 } from '@wia-client/src/store';
-import {
-	formatImageFileName,
-	setupImageFile,
-	useImage,
-} from '@wia-client/src/utils';
+import { setupImageFile, useImage } from '@wia-client/src/utils';
 import { EditUserDto } from '@wia-nx/types';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 
 export function EditUser() {
-	const { isLoggedIn } = useAppSelector(selectAuth);
-	const meQuery = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const loggedStatus = useGetLoggedStatusQuery();
+	const meQuery = useGetMeQuery(undefined, { skip: !loggedStatus.isSuccess });
 	const [editUser, editUserStatus] = useEditUserMutation();
 
 	const {

@@ -9,14 +9,13 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
+import Body from '@wia-client/src/components/layout/Body';
 import {
-	useAppSelector,
+	useGetLoggedStatusQuery,
 	useGetMediaWaifusQuery,
-	selectAuth,
 	useGetMeQuery,
 } from '@wia-client/src/store';
 import { parseMediaId } from '@wia-client/src/utils';
-import Body from '@wia-client/src/components/layout/Body';
 import WaifuCard from '../../waifus/WaifuCard';
 import MediaActionButtons from '../MediaActionButtons';
 
@@ -26,8 +25,10 @@ const MediaWaifus = () => {
 	const mediaId = parseMediaId(router.query.mediaId);
 
 	// redux hooks
-	const { isLoggedIn } = useAppSelector(selectAuth);
-	const userQuery = useGetMeQuery(undefined, { skip: !isLoggedIn });
+	const loggedStatus = useGetLoggedStatusQuery();
+	const userQuery = useGetMeQuery(undefined, {
+		skip: !loggedStatus.isSuccess,
+	});
 	const waifuQuery = useGetMediaWaifusQuery(
 		{ id: mediaId, waifuDto: {} },
 		{ skip: !router.isReady }
@@ -57,7 +58,7 @@ const MediaWaifus = () => {
 						<Skeleton isLoaded={dataLoaded}>
 							{dataLoaded && (
 								<MediaActionButtons
-									isLoggedIn={isLoggedIn}
+									isLoggedIn={loggedStatus.isSuccess}
 									query={{
 										knownByMe: isKnown,
 										mediaIdString: waifuQuery.data.media.id,
@@ -93,7 +94,7 @@ const MediaWaifus = () => {
 										},
 									}}
 									ownId={userQuery.data.id}
-									isLoggedIn={isLoggedIn}
+									isLoggedIn={loggedStatus.isSuccess}
 								/>
 							))
 						) : (

@@ -12,18 +12,24 @@ import { useRouter } from 'next/router';
 import { FC, useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { SignInDto } from '@wia-nx/types';
-import { useSignInMutation } from '@wia-client/src/store';
-import { parseRTKError } from '@wia-client/src/utils';
-import Body from '@wia-client/src/components/layout/Body';
 import FormErrorMessageWrapper from '@wia-client/src/components/common/FormErrorMessageWrapper';
+import Body from '@wia-client/src/components/layout/Body';
+import {
+	useGetLoggedStatusQuery,
+	useSetJwtMutation,
+	useSignInMutation,
+} from '@wia-client/src/store';
+import { parseRTKError } from '@wia-client/src/utils';
+import { SignInDto } from '@wia-nx/types';
 
 const SignIn: FC = () => {
 	// next hooks
 	const router = useRouter();
 
 	// rtk hooks
+	const loggedStatus = useGetLoggedStatusQuery();
 	const [signIn, signInState] = useSignInMutation();
+	const [setJwt] = useSetJwtMutation();
 
 	// react-hook-form
 	const {
@@ -39,19 +45,21 @@ const SignIn: FC = () => {
 
 	// std functions
 	const onSubmit: SubmitHandler<SignInDto> = async (data) => {
-		signIn(data);
+		const res = await signIn(data).unwrap();
+		setJwt({ token: res.accessToken });
 	};
 
 	// effects
 	useEffect(() => {
-		if (signInState.isSuccess && router.isReady) {
+		if (loggedStatus.isSuccess && router.isReady) {
 			if (typeof router.query.redirect === 'string') {
 				router.push(router.query.redirect);
 			} else {
+				console.log('redirect to home');
 				router.push('/');
 			}
 		}
-	}, [signInState, router]);
+	}, [signInState, router, loggedStatus.isSuccess]);
 
 	return (
 		<Body v h>
